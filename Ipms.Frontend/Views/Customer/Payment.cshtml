@@ -1,0 +1,488 @@
+﻿@{
+    var amount   = Convert.ToDecimal(ViewBag.Amount ?? 0);
+    var policyId = Convert.ToInt32(ViewBag.PolicyId ?? 0);
+    var type     = ViewBag.Type?.ToString() ?? "Insurance";
+    var plan     = ViewBag.Plan?.ToString() ?? "";
+    var gst      = Math.Round(amount * 0.18m, 2);
+    var total    = amount + gst;
+}
+
+<link rel="stylesheet" href="~/css/insuranceform.css" />
+<link rel="stylesheet" href="~/css/payment.css" />
+
+<div class="ins-wrapper">
+
+    <div class="ins-header">
+        <div>
+            <h6>Secure Payment</h6>
+            <h2><i class="bi bi-shield-lock me-2"></i>Complete Your Payment</h2>
+            @if (!string.IsNullOrEmpty(plan))
+            {
+                <p style="color:rgba(255,255,255,0.6); font-size:0.8rem; margin:4px 0 0;">
+                    @plan — @type Insurance
+                </p>
+            }
+        </div>
+    </div>
+
+    <div class="ins-card">
+        <div class="ins-card-body" id="paymentForm">
+
+            <!-- Payment Summary -->
+            <div class="section-sep">Payment Summary</div>
+            <div class="summary-grid mb-4">
+                <div class="summary-row">
+                    <span>Base Premium</span>
+                    <span>₹@amount.ToString("N2")</span>
+                </div>
+                <div class="summary-row">
+                    <span>GST (18%)</span>
+                    <span>₹@gst.ToString("N2")</span>
+                </div>
+                <div class="summary-row full" style="background:#e8f0fb;">
+                    <span style="color:#0f3460; font-weight:700;">Total Payable</span>
+                    <span style="color:#0f3460; font-weight:700; font-size:1.1rem;">
+                        ₹@total.ToString("N2")
+                    </span>
+                </div>
+            </div>
+
+            <!-- Payment Method Tabs -->
+            <div class="section-sep">Select Payment Method</div>
+            <div style="display:flex; gap:10px; margin-bottom:1.5rem; flex-wrap:wrap;">
+                <button type="button" class="pay-tab active" onclick="switchPayTab('card', this)">
+                    <i class="bi bi-credit-card me-1"></i> Card
+                </button>
+                <button type="button" class="pay-tab" onclick="switchPayTab('upi', this)">
+                    <i class="bi bi-phone me-1"></i> UPI
+                </button>
+                <button type="button" class="pay-tab" onclick="switchPayTab('netbanking', this)">
+                    <i class="bi bi-bank me-1"></i> Net Banking
+                </button>
+            </div>
+
+            <!-- ── Card Tab ── -->
+            <div id="tab-card" class="pay-section">
+                <div style="display:flex; gap:8px; margin-bottom:1rem;">
+                    <span class="card-badge">Cards Accepted: VISA | Mastercard | Rupay | AMEX</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-control" id="cardNum"
+                               placeholder="1234 5678 9012 3456"
+                               maxlength="19"
+                               oninput="formatCard(this)" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" class="form-control"
+                               placeholder="As on card" maxlength="40"
+                               oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Expiry (MM/YY)</label>
+                        <input type="text" class="form-control" id="expiry"
+                               placeholder="MM/YY" maxlength="5" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">CVV</label>
+                        <input type="password" class="form-control"
+                               placeholder="***" maxlength="3"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── UPI Tab ── -->
+            <div id="tab-upi" class="pay-section" style="display:none;">
+                <div style="display:flex; gap:8px; margin-bottom:1rem;">
+                    <span class="card-badge">UPI Accepted: GPay | PhonePe | Paytm | BHIM</span>
+                </div>
+                <label class="form-label">UPI ID</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="upiInput" class="form-control"
+                           placeholder="username@upi" maxlength="25" />
+                    <button type="button" class="btn-next" onclick="verifyUPI()">Verify</button>
+                </div>
+                <span id="verifyStatus" style="margin-left:5px; font-weight:bold;"></span>
+            </div>
+
+            <!-- ── Net Banking Tab ── -->
+            <div id="tab-netbanking" class="pay-section" style="display:none;">
+                <label class="form-label mb-2">Select Bank</label>
+
+                <select id="netBankingSelect" class="form-select mb-3"
+                        onchange="onBankDropdownChange(this)">
+                    <option value="">-- Select Your Bank --</option>
+                    <optgroup label="Public Sector Banks">
+                        <option value="SBI">State Bank of India (SBI)</option>
+                        <option value="BOB">Bank of Baroda</option>
+                        <option value="PNB">Punjab National Bank (PNB)</option>
+                        <option value="BOI">Bank of India</option>
+                        <option value="Canara">Canara Bank</option>
+                        <option value="Union">Union Bank of India</option>
+                        <option value="Indian">Indian Bank</option>
+                        <option value="CBI">Central Bank of India</option>
+                        <option value="UCO">UCO Bank</option>
+                        <option value="BOM">Bank of Maharashtra</option>
+                        <option value="IOB">Indian Overseas Bank</option>
+                        <option value="PSB">Punjab &amp; Sind Bank</option>
+                    </optgroup>
+                    <optgroup label="Private Sector Banks">
+                        <option value="HDFC">HDFC Bank</option>
+                        <option value="ICICI">ICICI Bank</option>
+                        <option value="Axis">Axis Bank</option>
+                        <option value="Kotak">Kotak Mahindra Bank</option>
+                        <option value="Yes">Yes Bank</option>
+                        <option value="IDFC">IDFC First Bank</option>
+                        <option value="IndusInd">IndusInd Bank</option>
+                        <option value="Federal">Federal Bank</option>
+                        <option value="RBL">RBL Bank</option>
+                        <option value="Bandhan">Bandhan Bank</option>
+                        <option value="CSB">CSB Bank</option>
+                        <option value="CityUnion">City Union Bank</option>
+                        <option value="Karur">Karur Vysya Bank</option>
+                        <option value="SIB">South Indian Bank</option>
+                        <option value="DCB">DCB Bank</option>
+                    </optgroup>
+                    <optgroup label="Small Finance Banks">
+                        <option value="AUSmall">AU Small Finance Bank</option>
+                        <option value="Equitas">Equitas Small Finance Bank</option>
+                        <option value="Ujjivan">Ujjivan Small Finance Bank</option>
+                        <option value="Jana">Jana Small Finance Bank</option>
+                        <option value="Suryoday">Suryoday Small Finance Bank</option>
+                        <option value="ESAF">ESAF Small Finance Bank</option>
+                    </optgroup>
+                    <optgroup label="Payments Banks">
+                        <option value="Airtel">Airtel Payments Bank</option>
+                        <option value="Jio">Jio Payments Bank</option>
+                        <option value="Paytm">Paytm Payments Bank</option>
+                        <option value="IndiaPost">India Post Payments Bank</option>
+                        <option value="FINO">FINO Payments Bank</option>
+                    </optgroup>
+                    <optgroup label="Foreign Banks (India Operations)">
+                        <option value="Citi">Citibank India</option>
+                        <option value="HSBC">HSBC India</option>
+                        <option value="SC">Standard Chartered India</option>
+                        <option value="DBS">DBS Bank India</option>
+                        <option value="Deutsche">Deutsche Bank India</option>
+                    </optgroup>
+                </select>
+
+                <label class="form-label mb-2" style="color:#6c757d; font-size:0.85rem;">
+                    Or quickly select a popular bank:
+                </label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" class="mb-3">
+                    <div class="bank-opt" onclick="selectBank(this)" data-value="SBI">SBI</div>
+                    <div class="bank-opt" onclick="selectBank(this)" data-value="HDFC">HDFC Bank</div>
+                    <div class="bank-opt" onclick="selectBank(this)" data-value="ICICI">ICICI Bank</div>
+                    <div class="bank-opt" onclick="selectBank(this)" data-value="Axis">Axis Bank</div>
+                    <div class="bank-opt" onclick="selectBank(this)" data-value="Kotak">Kotak Bank</div>
+                    <div class="bank-opt" onclick="selectBank(this)" data-value="PNB">PNB</div>
+                </div>
+
+                <div id="netBankingForm"
+                     style="display:none; border:1px solid #dee2e6; border-radius:10px;
+                            padding:20px; background:#f9fbfd; margin-top:10px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                        <div style="width:40px; height:40px; background:#1a3a5c; border-radius:8px;
+                                    display:flex; align-items:center; justify-content:center;">
+                            <span style="color:white; font-size:1.2rem;">🏦</span>
+                        </div>
+                        <div>
+                            <div style="font-weight:700; color:#1a3a5c;" id="selectedBankName">
+                                Net Banking
+                            </div>
+                            <div style="font-size:0.78rem; color:#6c757d;">Secure Net Banking Login</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">User ID / Customer ID</label>
+                        <input type="text" class="form-control" id="nbUserId"
+                               placeholder="Enter your Net Banking User ID"
+                               maxlength="16" autocomplete="off"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <div style="position:relative;">
+                            <input type="password" class="form-control" id="nbPassword"
+                                   placeholder="Enter your Net Banking Password"
+                                   maxlength="30" />
+                            <span onclick="toggleNbPassword()"
+                                  style="position:absolute; right:12px; top:50%;
+                                         transform:translateY(-50%); cursor:pointer;
+                                         color:#6c757d; font-size:0.9rem;"
+                                  id="nbPasswordToggle">👁️</span>
+                        </div>
+                    </div>
+                    <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:8px;
+                                padding:10px 14px; font-size:0.8rem; color:#795548; margin-bottom:15px;">
+                        🔒 <strong>Secure Redirect:</strong> You will be securely redirected to
+                        <span id="bankDomainHint" style="color:#1a3a5c; font-weight:600;">
+                            your bank's portal
+                        </span> to authenticate and complete the payment.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="step-actions">
+                <a href="/Customer/Dashboard" class="btn-back-step">
+                    <i class="bi bi-arrow-left"></i> Cancel
+                </a>
+                <button type="button" class="btn-submit" id="payBtn" onclick="processPayment()">
+                    <i class="bi bi-lock-fill me-1"></i> Pay ₹@total.ToString("N2")
+                </button>
+            </div>
+        </div>
+
+        <!-- Processing Screen -->
+        <div id="processingScreen" style="display:none; text-align:center; padding:3rem 2rem;">
+            <div class="spinner-border text-primary mb-3" style="width:3rem; height:3rem;"></div>
+            <h5 style="color:#1a1a2e;">Processing Payment...</h5>
+            <p style="color:#aaa; font-size:0.9rem;">Please do not close this window</p>
+        </div>
+
+        <!-- Success Screen -->
+        <div id="successScreen" style="display:none; text-align:center; padding:3rem 2rem;">
+            <div style="width:72px; height:72px; border-radius:50%; background:#e6f9f0;
+                        display:flex; align-items:center; justify-content:center;
+                        margin:0 auto 1.25rem;">
+                <i class="bi bi-check-circle-fill" style="font-size:2.2rem; color:#22c55e;"></i>
+            </div>
+            <h4 style="color:#1a1a2e; font-weight:700; margin-bottom:0.4rem;">
+                Payment Successful!
+            </h4>
+            <p style="color:#888; font-size:0.9rem; margin-bottom:0.5rem;">
+                Your policy has been activated successfully.
+            </p>
+            <div id="txnBadge"
+                 style="display:inline-block; background:#f4f6fb; border-radius:8px;
+                        padding:6px 16px; font-size:12px; color:#666;
+                        letter-spacing:0.5px; margin-bottom:1.75rem;"></div>
+            <br />
+            <a href="/Customer/Dashboard" class="btn-submit" style="text-decoration:none;">
+                <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const POLICY_ID = @policyId;
+    const TOTAL=@total; 
+
+    // ── Tab Switching ──────────────────────────────────────────────────
+    function switchPayTab(tab, btn) {
+        document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.pay-section').forEach(s => s.style.display = 'none');
+        btn.classList.add('active');
+        document.getElementById('tab-' + tab).style.display = 'block';
+    }
+
+    // ── Net Banking ────────────────────────────────────────────────────
+    function selectBank(el) {
+        document.querySelectorAll('.bank-opt').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        const label    = el.innerText.trim();
+        const value    = el.getAttribute('data-value');
+        const dropdown = document.getElementById('netBankingSelect');
+        if (dropdown) dropdown.value = value;
+        showNetBankingForm(label);
+    }
+
+    function onBankDropdownChange(sel) {
+        document.querySelectorAll('.bank-opt').forEach(b => {
+            b.classList.toggle('selected', b.getAttribute('data-value') === sel.value);
+        });
+        const label = sel.options[sel.selectedIndex].text;
+        if (sel.value) showNetBankingForm(label);
+        else document.getElementById('netBankingForm').style.display = 'none';
+    }
+
+    function showNetBankingForm(bankLabel) {
+        const form = document.getElementById('netBankingForm');
+        if (!form) return;
+        document.getElementById('selectedBankName').innerText = bankLabel + ' Net Banking';
+        document.getElementById('bankDomainHint').innerText   = bankLabel + "'s official portal";
+        form.style.display = 'block';
+        document.getElementById('nbUserId').value   = '';
+        document.getElementById('nbPassword').value = '';
+    }
+
+    function toggleNbPassword() {
+        const inp  = document.getElementById('nbPassword');
+        const icon = document.getElementById('nbPasswordToggle');
+        if (inp.type === 'password') { inp.type = 'text';     icon.innerText = '🙈'; }
+        else                         { inp.type = 'password'; icon.innerText = '👁️'; }
+    }
+
+    // ── Card Formatting ────────────────────────────────────────────────
+    function formatCard(el) {
+        let v = el.value.replace(/\D/g, '').substring(0, 16);
+        el.value = v.replace(/(.{4})/g, '$1 ').trim();
+    }
+
+    // ✅ Bug 3 Fixed: changed month <= currentMonth to month < currentMonth
+    // A card expiring THIS month is still valid until end of month
+    document.getElementById('expiry').addEventListener('blur', function () {
+        const value = this.value.trim();
+        if (!value) return;
+
+        const match = value.match(/^(0[1-9]|1[0-2])\/(\d{2})$/);
+        if (!match) {
+            alert('Please enter expiry in MM/YY format (e.g. 08/27)');
+            this.value = '';
+            return;
+        }
+
+        const month = parseInt(match[1]);
+        const year  = parseInt('20' + match[2]);
+
+        const today        = new Date();
+        const currentMonth = today.getMonth() + 1;  // 1-12
+        const currentYear  = today.getFullYear();
+
+        // ✅ Fixed: < instead of <= so current month is accepted
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
+            alert('Your card has expired. Please use a valid card.');
+            this.value = '';
+            return;
+        }
+    });
+
+    // Auto-format expiry as MM/YY while typing
+    document.getElementById('expiry').addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length >= 3) {
+            this.value = v.substring(0, 2) + '/' + v.substring(2);
+        } else {
+            this.value = v;
+        }
+    });
+
+    // ── UPI Verify ─────────────────────────────────────────────────────
+    function verifyUPI() {
+        const upiInput = document.getElementById('upiInput').value.trim();
+        const status   = document.getElementById('verifyStatus');
+        @* @@ in Razor escapes to single @ in HTML output *@
+        const upiRegex = /^[a-zA-Z0-9.\-_]{2,}@@[a-zA-Z]{2,}$/;
+
+        if (!upiRegex.test(upiInput)) {
+            status.innerText   = 'Invalid UPI ❌';
+            status.style.color = 'red';
+            return;
+        }
+        status.innerText   = 'Verified ✅';
+        status.style.color = 'green';
+    }
+
+    // ── Active Payment Mode ────────────────────────────────────────────
+    function getActivePaymentMode() {
+        const activeTab = document.querySelector('.pay-tab.active');
+        if (!activeTab) return 'Card';
+        const text = activeTab.innerText.trim();
+        if (text.includes('UPI'))         return 'UPI';
+        if (text.includes('Net Banking')) return 'NetBanking';
+        return 'Card';
+    }
+
+    // ── Payment Form Validation ────────────────────────────────────────
+    function validatePaymentForm() {
+        const mode = getActivePaymentMode();
+
+        if (mode === 'Card') {
+            const cardNum = document.getElementById('cardNum').value.replace(/\s/g, '');
+            const expiry  = document.getElementById('expiry').value.trim();
+
+            if (cardNum.length < 16) {
+                alert('Please enter a valid 16-digit card number.');
+                return false;
+            }
+            // ✅ expiry format check MM/YY = 5 chars
+            if (!expiry.match(/^(0[1-9]|1[0-2])\/\d{2}$/)) {
+                alert('Please enter a valid expiry date in MM/YY format.');
+                return false;
+            }
+        }
+
+        if (mode === 'UPI') {
+            const upiInput = document.getElementById('upiInput').value.trim();
+            const status   = document.getElementById('verifyStatus');
+            const upiRegex = /^[a-zA-Z0-9.\-_]{2,}@@[a-zA-Z]{2,}$/;
+
+            if (!upiRegex.test(upiInput)) {
+                alert('Please enter a valid UPI ID (e.g. name@upi).');
+                return false;
+            }
+            if (!status || !status.innerText.includes('Verified')) {
+                alert('Please verify your UPI ID first by clicking Verify.');
+                return false;
+            }
+        }
+
+        if (mode === 'NetBanking') {
+            const dropdown = document.getElementById('netBankingSelect');
+            const selected = document.querySelector('.bank-opt.selected');
+            if ((!dropdown || !dropdown.value) && !selected) {
+                alert('Please select a bank to proceed.');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ── Process Payment ────────────────────────────────────────────────
+    function processPayment() {
+        if (!validatePaymentForm()) return;
+
+        const btn = document.getElementById('payBtn');
+        btn.disabled   = true;
+        btn.innerHTML  = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+
+        document.getElementById('paymentForm').style.display     = 'none';
+        document.getElementById('processingScreen').style.display = 'block';
+
+        setTimeout(function () {
+            $.ajax({
+                url:         '/Customer/ConfirmPayment',
+                method:      'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    policyId:      POLICY_ID,
+                    amount:        TOTAL,
+                    paymentMode:   getActivePaymentMode(),
+                    transactionId: 'IPMS' + Date.now().toString().slice(-8)
+                }),
+                success: function (data) {
+                    document.getElementById('processingScreen').style.display = 'none';
+                    if (data.success) {
+                        document.getElementById('txnBadge').textContent =
+                            'Transaction ID: ' + (data.transactionId || ('IPMS' + Date.now().toString().slice(-8)));
+                        document.getElementById('successScreen').style.display = 'block';
+                        setTimeout(function () {
+                            window.location.href = '/Customer/Dashboard';
+                        }, 2500);
+                    } else {
+                        alert('Payment failed: ' + (data.error || 'Unknown error'));
+                        document.getElementById('paymentForm').style.display = 'block';
+                        btn.disabled  = false;
+                        btn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Pay ₹@total.ToString("N2")';
+                    }
+                },
+                error: function (xhr) {
+                    document.getElementById('processingScreen').style.display = 'none';
+                    document.getElementById('paymentForm').style.display      = 'block';
+                    alert('Payment failed (HTTP ' + xhr.status + '). Please try again.');
+                    btn.disabled  = false;
+                    btn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Pay ₹@total.ToString("N2")';
+                }
+            });
+        }, 2000);
+    }
+</script>
+}

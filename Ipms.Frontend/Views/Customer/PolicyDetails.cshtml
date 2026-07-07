@@ -1,0 +1,227 @@
+﻿@model Ipms.Frontend.Models.PolicyViewModel
+
+@{
+    ViewData["Title"] = "Policy Details";
+}
+
+<link rel="stylesheet" href="~/css/Dashboard.css" />
+
+<style>
+    /* Hide download button when printing */
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+        }
+    }
+</style>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="welcome-banner no-print">
+        <div class="greeting">
+            <h2>Policy Details</h2>
+            <p>@Model.PolicyNumber</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            @if (Model.PolicyStatus == "Active")
+            {
+                <a asp-controller="Claims" asp-action="Apply" asp-route-id="@Model.PolicyId" class="btn" style="background:#0f3460; color:#fff">
+                    🗎 Claim
+                </a>
+            }
+            <button onclick="downloadPdf()" class="btn" style="background:#0f3460; color:#fff;">
+                ⬇ Download PDF
+            </button>
+            <a asp-controller="Customer" asp-action="Dashboard" class="btn">
+                ← Back
+            </a>
+        </div>
+    </div>
+
+    <!-- PDF Content starts here -->
+    <div id="pdfContent">
+
+        <!-- PDF Header (only visible in PDF) -->
+        <div style="text-align:center; padding: 20px 0 10px; border-bottom: 2px solid #AACDDC; margin-bottom: 20px;">
+            <h2 style="color:#2c3e50; font-size:22px; font-weight:bold;">IPMS Insurance Policy Certificate</h2>
+        </div>
+
+        <!-- Status Alert -->
+        <div class="alert" style="background:#e8f4fd; border-left-color:#0f3460; color:#0f3460;">
+            🛡️ Policy <strong>@Model.PolicyNumber</strong> is currently
+            <strong>@Model.PolicyStatus</strong>.
+        </div>
+
+        <!-- Policy Info -->
+        <div class="card">
+            <div class="card-header">
+                Policy Information
+                <span class="badge @(Model.PolicyStatus == "Active" ? "badge-green" :
+                                           Model.PolicyStatus == "Pending" ? "badge-orange" : "badge-red")">
+                    @Model.PolicyStatus
+                </span>
+            </div>
+            <div class="policy-detail">
+                <div class="row">
+                    <div class="field">
+                        <label>Full Name</label>
+                        <span>@(Model.FullName ?? "-")</span>
+                    </div>
+                    <div class="field">
+                        <label>Policy Number</label>
+                        <span>@Model.PolicyNumber</span>
+                    </div>
+                    <div class="field">
+                        <label>Insurance Type</label>
+                        <span>@(Model.InsuranceType ?? "-")</span>
+                    </div> 
+                    <div class="field">
+                        <label>Plan Name</label>
+                        <span>@(Model.SchemeName ?? "-")</span>
+                    </div>
+                    <div class="field">
+                        <label>Sum Assured</label>
+                        <span>₹@Model.SumAssured.ToString("N0")</span>
+                    </div>
+                    <div class="field">
+                        <label>Premium Amount</label>
+                        <span>₹@Model.PremiumAmount.ToString("N0") / year</span>
+                    </div>
+                    <div class="field">
+                        <label>Policy Term</label>
+                        <span>@(Model.PolicyTerm.HasValue? Model.PolicyTerm + " Year(s)" : "-")</span>
+                    </div>
+               
+                    <div class="field">
+                        <label>Start Date</label>
+                        <span>@(Model.PolicyDate.HasValue? Model.PolicyDate.Value.ToString("dd-MMM-yyyy") : "-")</span>
+                    </div>
+                    <div class="field">
+                        <label>Maturity Date</label>
+                        <span>@(Model.MaturityDate.HasValue? Model.MaturityDate.Value.ToString("dd-MMM-yyyy") : "-")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nominee Info -->
+        <div class="card">
+            <div class="card-header">Nominee Details</div>
+            <div class="policy-detail">
+                <div class="row">
+                    <div class="field">
+                        <label>Nominee Name</label>
+                        <span>@(Model.NomineeName ?? "-")</span>
+                    </div>
+                    <div class="field">
+                        <label>Relationship</label>
+                        <span>@(Model.NomineeRelationship ?? "-")</span>
+                    </div>
+                    <div class="field"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="card">
+            <div class="card-header">Payment History</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Policy No.</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@Model.PolicyNumber</td>
+                        <td>₹@Model.PremiumAmount.ToString("N0")</td>
+                        <td>@(Model.PolicyDate.HasValue? Model.PolicyDate.Value.ToString("dd-MMM-yyyy") : "-")</td>
+                        @if (Model.PaymentStatus == "Paid")
+                        {
+                            <td><span class="badge badge-green">Paid</span></td>            
+                        }
+                        else
+                        {
+                            <td><span class="badge badge-orange">Pending</span></td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PDF Footer -->
+        <div style="text-align:center; color:black; font-size:11px; padding:16px 0 4px; border-top:1px solid #eee; margin-top:10px;">
+            Generated on @DateTime.Now.ToString("dd-MMM-yyyy") &nbsp;|&nbsp; IPMS Insurance Policy Management System
+        </div>
+
+    </div>
+    <!-- PDF Content ends here -->
+
+</div>
+
+@section Scripts {
+    <!-- jsPDF + html2canvas from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        var policyNumber = '@(Model.PolicyNumber ?? "Policy")';
+        async function downloadPdf() {
+            const btn = document.querySelector('[onclick="downloadPdf()"]');
+            btn.textContent = '⏳ Generating...';
+            btn.disabled = true;
+
+            const element = document.getElementById('pdfContent');
+
+            try {
+                const canvas = await html2canvas(element, {
+                    scale: 2,               // higher = better quality
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imgData   = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf       = new jsPDF('p', 'mm', 'a4');
+
+                const pageWidth  = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+
+                const imgWidth   = pageWidth;
+                const imgHeight  = (canvas.height * imgWidth) / canvas.width;
+
+                let heightLeft = imgHeight;
+                let position   = 0;
+
+                // Add first page
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                // Add more pages if content is long
+                while (heightLeft > 0) {
+                    position   = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                pdf.save('Policy-' + policyNumber + '.pdf');
+
+            } catch (err) {
+                console.error('PDF generation failed:', err);
+                alert('Failed to generate PDF. Please try again.');
+            } finally {
+                btn.textContent = '⬇ Download PDF';
+                btn.disabled    = false;
+            }
+        }
+    </script>
+}

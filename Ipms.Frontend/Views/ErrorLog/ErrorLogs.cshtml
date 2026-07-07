@@ -1,0 +1,274 @@
+﻿@model Ipms.Frontend.Models.AuditPaginatedList<Ipms.Frontend.DTOs.Deserialize.ErrorLogDeserialize>
+
+@{
+    ViewData["Title"] = "Error Logs";
+}
+
+<link rel="stylesheet" href="~/css/getall.css" />
+<link rel="stylesheet" href="~/css/auditlogs.css" />
+
+<div class="customer-list-wrapper">
+
+    <div class="page-header">
+        <div>
+            <h2><i class="bi bi-bug me-2"></i>Error Logs</h2>
+
+            <div class="stats-row" style="margin-top:0.5rem; margin-bottom:0;">
+                <span class="record-count">
+                    Total: @Model.TotalAudits
+                </span>
+
+                <span class="record-count" style="background:#fef0f0; color:#d93025;">
+                    🔴 Server Errors: @Model.AuditLogList.Count(e => e.StatusCode >= 500)
+                </span>
+
+                <span class="record-count" style="background:#fff3cd; color:#856404;">
+                    🟡 Client Errors: @Model.AuditLogList.Count(e => e.StatusCode >= 400 && e.StatusCode < 500)
+                </span>
+            </div>
+        </div>
+
+        <span class="record-count">
+            @Model.TotalAudits error@(Model.TotalAudits != 1 ? "s" : "") total
+        </span>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-3">@TempData["Error"]</div>
+    }
+
+    <div class="filter-bar">
+        <div class="search-input-wrap" style="max-width:320px;">
+            <i class="bi bi-search search-icon"></i>
+            <form method="get" class="d-flex" asp-action="ErrorLogs" asp-controller="ErrorLog">
+                <input type="text" name="searchString" maxlength="20" id="searchInput"
+                       value="@Context.Request.Query["searchString"]"
+                       placeholder="Search errors..." />
+
+                <button class="clear-btn" id="clearBtn" type="button" style="display:none;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <button type="submit" class="btn-search">
+                <i class="bi bi-search"></i> Search
+            </button>
+            </form>
+        </div>
+
+        <select class="filter-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="500">Server Error</option>
+            <option value="400">Client Error</option>
+        </select>
+
+        <button type="button" class="btn-search" onclick="resetFilters()"
+                style="background:#6c757d;">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+    </div>
+
+    <div class="table-card">
+        <div class="table-responsive" style="max-height:65vh; overflow-y:auto;">
+            <table class="table table-hover mb-0" style="min-width:900px;">
+                <thead>
+                    <tr>
+                        <th>Message</th>
+                        <th>Path</th>
+                        <th>Method</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tableBody">
+
+                    @if (Model.AuditLogList.Any())
+                    {
+                        @foreach (var log in Model.AuditLogList)
+                        {
+                            <tr>
+                                <td>
+                                    <strong title="@log.ErrorMessage">
+                                        @log.ShortErrorMessage
+                                    </strong>
+                                </td>
+
+                                <td>@log.RequestPath</td>
+
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        @log.HttpMethod
+                                    </span>
+                                </td>
+
+                                <td>@log.UserName</td>
+
+                                <td>
+                                    @if (log.StatusCode >= 500)
+                                    {
+                                        <span class="badge bg-danger">@log.StatusCode</span>
+                                    }
+                                    else if (log.StatusCode >= 400)
+                                    {
+                                        <span class="badge bg-warning text-dark">@log.StatusCode</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">@log.StatusCode</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @log.LoggedDate.ToString("dd MMM yyyy, HH:mm:ss")
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="no-results">
+                                <i class="bi bi-bug"></i>
+                                <span>No error logs found.</span>
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.TotalPages >= 1)
+    {
+        <div class="pagination-wrapper">
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted" style="font-size:0.83rem;">
+                    Showing @((Model.PageIndex - 1) * Model.PageSize + 1)
+                    – @(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalAudits))
+                    of @Model.TotalAudits
+                </span>
+
+                <nav>
+                    <ul class="pagination mb-0">
+
+                        <li class="page-item @( !Model.HasPreviousPage ? "disabled" : "" )">
+                            <a class="page-link"
+                               asp-action="ErrorLogs"
+                               asp-route-pageNumber="@(Model.PageIndex - 1)"
+                               asp-route-searchString="@Context.Request.Query["searchString"]"
+                               asp-route-stringOrder="@ViewData["IdSortParam"]"
+                               >
+                                ‹ Prev
+                            </a>
+                        </li>
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageIndex - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+                         }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="ErrorLogs"
+                                   asp-route-pageNumber="@i"
+                                   asp-route-searchString="@Context.Request.Query["searchString"]"
+                                   asp-route-stringOrder="@ViewData["IdSortParam"]">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+
+                        <li class="page-item @( !Model.HasNextPage ? "disabled" : "" )">
+                            <a class="page-link"
+                               asp-action="ErrorLogs"
+                               asp-route-stringOrder="@ViewData["IdSortParam"]"
+                               asp-route-searchString="@Context.Request.Query["searchString"]"
+                               asp-route-pageNumber="@(Model.PageIndex + 1)"
+                              >
+                                Next ›
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+
+</div>
+
+
+
+
+<script>
+    const statusFilter = document.getElementById("statusFilter");
+    const tableBody = document.getElementById("tableBody");
+    const searchInput = document.getElementById("searchInput");
+    const clearBtn = document.getElementById("clearBtn");
+
+    // Status Filter
+    statusFilter.addEventListener("change", function () {
+        const selected = this.value;
+        const rows = tableBody.querySelectorAll("tr");
+
+        rows.forEach(row => {
+            const statusCell = row.cells[4]; 
+            if (!statusCell) return;
+
+            const statusCode = parseInt(statusCell.innerText.trim());
+
+            let show = true;
+
+            if (selected === "500") {
+                show = statusCode >= 500;
+            } else if (selected === "400") {
+                show = statusCode >= 400 && statusCode < 500;
+            }
+
+            row.style.display = show ? "" : "none";
+        });
+    });
+
+    // Reset Filters
+    function resetFilters() {
+        statusFilter.value = "";
+
+        searchInput.value = "";
+
+        clearBtn.style.display = "none";
+
+        const rows = tableBody.querySelectorAll("tr");
+        rows.forEach(row => row.style.display = "");
+
+        window.location.href = window.location.pathname;
+    }
+
+    searchInput.addEventListener("input", function () {
+        clearBtn.style.display = this.value ? "inline-block" : "none";
+    });
+
+    clearBtn.addEventListener("click", function () {
+        searchInput.value = "";
+        this.style.display = "none";
+    });
+</script>

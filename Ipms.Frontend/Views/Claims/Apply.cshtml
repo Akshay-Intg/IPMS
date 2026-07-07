@@ -1,0 +1,80 @@
+﻿@model Ipms.Frontend.Models.CreateClaimModel
+@{
+    ViewData["Title"] = "Apply Claim";
+}
+<link rel="stylesheet" href="~/css/edit.css" />
+
+<div class="edit-wrapper">
+    <div class="edit-card">
+
+        <div class="edit-banner">
+            <h6>Insurance Portal</h6>
+            <h2><i class="bi bi-pencil-square me-2"></i>Apply Claim</h2>
+        </div>
+
+        <div class="edit-body">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger rounded-3 mb-3 alert-box">@TempData["Error"]</div>
+            }
+
+            <form asp-controller="Claims" asp-action="Apply" method="post">
+                <input type="hidden" asp-for="PolicyId" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                <div class="section-label">Claim</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <label class="form-label">Claim Amount</label>
+                        <input type="text" class="form-control" maxlength="10" asp-for="ClaimAmount" max="99999999" required />
+                        <span asp-validation-for="ClaimAmount" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Reason</label>
+                        <input type="text" class="form-control" maxlength="100" asp-for="Reason" />
+                    </div>
+                </div>
+                <div class="d-flex gap-2 pt-2">
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-check-circle"></i> Apply
+                    </button>
+                    <a asp-controller="Customer" asp-action="Dashboard" class="btn-cancel">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+     <script>
+                $(document).ready(function () {
+            $("input[name='ClaimAmount']").on("input", function () {
+                let value = $(this).val();
+                let errorSpan = $("span[data-valmsg-for='ClaimAmount']");
+
+                value = value.replace(/\D/g, '');
+                $(this).val(value);
+
+                if (value.length > 10) {
+                    errorSpan.text("Claim amount cannot exceed 10 digits");
+                } else {
+                    errorSpan.text("");
+                }
+
+                $(this).valid();
+            });
+        });
+        setTimeout(function () {
+                document.querySelectorAll('.alert-box').forEach(function (el) {
+                    el.style.transition = "opacity 0.5s ease";
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 500);
+                });
+            }, 3000);
+    </script>
+}

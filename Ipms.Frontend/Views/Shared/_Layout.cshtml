@@ -1,0 +1,289 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Ipms.Frontend.Helpers
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var token = HttpContextAccessor.HttpContext?.Session.GetString("JWToken");
+    var isLoggedIn = !string.IsNullOrEmpty(token);
+    var currentRole = JwtHelper.GetUserRole(token);
+    var customerId = JwtHelper.GetCustomerId(token);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ipms.Frontend</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/profile.css" />
+    <link rel="stylesheet" href="~/Ipms.Frontend.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+            <div class="container-fluid px-4">
+
+                <a class="navbar-brand"
+                   asp-controller="@(isLoggedIn ? "Customer" : "Home")"
+                   asp-action="@(isLoggedIn ? "Dashboard" : "Welcome")">
+                    <svg width="200" height="46" viewBox="0 0 397 75" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="40" cy="40" r="36" fill="#AACDDC" />
+                        <circle cx="40" cy="40" r="28" fill="#2c3e50" />
+                        <path d="M40,22 L53,31 L53,48 Q53,58 40,62 Q27,58 27,48 L27,31 Z" fill="#AACDDC" />
+                        <text x="40" y="57" font-family="Georgia,serif" font-size="35" font-weight="700" fill="#2c3e50" text-anchor="middle">I</text>
+                        <line x1="84" y1="10" x2="84" y2="70" stroke="rgba(255,255,255,0.4)" stroke-width="1" />
+                        <text x="105" y="40" font-family="'Segoe UI',Arial,sans-serif" font-size="28" font-weight="700" fill="#AACDDC">IPMS</text>
+                        <text x="105" y="60" font-family="'Segoe UI',Arial,sans-serif" font-size="17" font-weight="600" fill="#ffffff">Insurance Policy Management System</text>
+                    </svg>
+                </a>
+
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+
+                    <!-- ── Center Menu ── -->
+                    <ul class="navbar-nav center-nav mb-2 mb-lg-0">
+
+                        @if (isLoggedIn && currentRole == "Broker")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" 
+                                    asp-controller="Broker" asp-action="Dashboard">
+                                    <i class="bi bi-speedometer2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CPlans" ? "active" : "")"
+                                    asp-controller="Customer" asp-action="CPlans">
+                                    <i class="bi bi-shield-check"></i> Plans
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ContactUs" ? "active" : "")" 
+                                    asp-controller="Home" asp-action="ContactUs">
+                                    <i class="bi bi-telephone"></i>
+                                    Contact Us
+                                </a>
+                            </li>
+                        }
+                        else if (isLoggedIn && currentRole == "Admin")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")" 
+                                    asp-controller="Customer" asp-action="Dashboard">
+                                    <i class="bi bi-house"></i> Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CPlans" ? "active" : "")" 
+                                    asp-controller="Customer" asp-action="CPlans">
+                                    <i class="bi bi-shield-check"></i> Plans
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ContactUs" ? "active" : "")" 
+                                    asp-controller="Home" asp-action="ContactUs">
+                                    <i class="bi bi-telephone"></i> 
+                                    Contact Us
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown" href="#" data-bs-toggle="dropdown">
+                                    <i class="bi bi-gear"></i> Admin
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item @(ViewContext.RouteData.Values["action"]?.ToString() == "GetAll" ? "active" : "")" 
+                                            asp-controller="Admin" asp-action="GetAll">
+                                            <i class="bi bi-people"></i> Customers
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AuditLogs" ? "active" : "")" 
+                                            asp-controller="Admin" asp-action="AuditLogs">
+                                            <i class="bi bi-journal-text"></i> Audit Logs
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="ErrorLog" asp-action="ErrorLogs">
+                                            <i class="bi bi-bug"></i>Error Logs
+                                        </a>
+                                    </li>
+
+
+
+                                    <li>
+                                        <a class="dropdown-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Brokers" ? "active" : "")" 
+                                            asp-controller="Admin" asp-action="Brokers">
+                                            <i class="bi bi-person-badge"></i> Brokers
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item @(ViewContext.RouteData.Values["action"]?.ToString() == "SchemeList" ? "active" : "")" 
+                                            asp-controller="Scheme" asp-action="SchemeList">
+                                            <i class="bi bi-list-ul"></i> Insurance Schemes
+                                        </a>
+                                    </li>
+                                    
+                                </ul>
+                            </li>
+                        }
+                            else if (isLoggedIn && currentRole == "Underwriter")
+                            {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
+                                   asp-controller="Customer" asp-action="Dashboard">
+                                    <i class="bi bi-house"></i> Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CPlans" ? "active" : "")"
+                                   asp-controller="Customer" asp-action="CPlans">
+                                    <i class="bi bi-shield-check"></i> Plans
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ContactUs" ? "active" : "")"
+                                   asp-controller="Home" asp-action="ContactUs">
+                                    <i class="bi bi-telephone"></i>
+                                    Contact Us
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Policy" asp-action="AllPolicies">
+                                    <i class="bi bi-file-earmark-text"></i> All Policies
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Claims" asp-action="GetClaimsList">
+                                    <i class="bi bi-file-earmark-check"></i> All Claims
+                                </a>
+                            </li>
+                            }
+                            else if (isLoggedIn && currentRole == "Customer")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
+                                    asp-controller="Customer" asp-action="Dashboard">
+                                    <i class="bi bi-house"></i> Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CPlans" ? "active" : "")"
+                                    asp-controller="Customer" asp-action="CPlans">
+                                    <i class="bi bi-shield-check"></i> Plans
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ContactUs" ? "active" : "")"
+                                    asp-controller="Home" asp-action="ContactUs">
+                                    <i class="bi bi-telephone"></i>
+                                    Contact Us
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Not logged in -->
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Welcome" ? "active" : "")"
+                                    asp-controller="Home" asp-action="Welcome">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "About" ? "active" : "")" 
+                                    asp-controller="Home" asp-action="About">About Us</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Plans" ? "active" : "")" 
+                                    asp-controller="Home" asp-action="Plans">Plans</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ContactUs" ? "active" : "")"
+                                    asp-controller="Home" asp-action="ContactUs">Contact Us</a>
+                            </li>
+                        }
+
+                    </ul>
+
+                    <!-- ── Right Menu ── -->
+                    <ul class="navbar-nav ms-auto">
+                        @if (isLoggedIn)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown d-flex align-items-center gap-1"
+                                   href="#" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle fs-5"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")" 
+                                            asp-controller="Customer" asp-action="Profile">
+                                            <i class="bi bi-person"></i> View Profile
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" asp-controller="Customer" asp-action="Logout">
+                                            <i class="bi bi-box-arrow-right"></i> Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Register" ? "active" : "")" 
+                                    asp-controller="Auth" asp-action="Register">Register</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Login" ? "active" : "")" 
+                                    asp-controller="Auth" asp-action="Login">Login</a>
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            <partial name="_Notification" />
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery/jquery.min.js"></script>
+   @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        (function () {
+            var isLoggedIn = '@isLoggedIn'.toLowerCase() === 'true';
+            if (isLoggedIn) {
+                history.pushState(null, null, window.location.href);
+                window.addEventListener("popstate", function () {
+                    history.pushState(null, null, window.location.href);
+                });
+            }
+        })();
+    </script>
+
+</body>
+</html>

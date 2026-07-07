@@ -1,0 +1,166 @@
+﻿@model Ipms.Frontend.Models.BrokerDashboardViewModel
+
+<link rel="stylesheet" href="~/css/Brokers.css" />
+
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>Broker Dashboard</title>
+    </head>
+    <body>
+<div class="broker-wrapper">
+
+    <!-- Header -->
+    <div class="broker-page-header">
+        <div>
+            <h6>Broker Panel</h6>
+            <h2><i class="bi bi-speedometer2 me-2"></i>Welcome, @Model.BrokerName</h2>
+            <div class="type-badge">
+                <i class="bi bi-shield-check"></i> Verified Broker
+            </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a asp-controller="Customer" asp-action="CPlans" class="btn-add">
+                <i class="bi bi-plus-circle"></i> Sell New Policy
+            </a>
+            <a asp-controller="Broker" asp-action="AddCustomer" class="btn-add"
+               style="background:#27ae60;">
+                <i class="bi bi-person-plus"></i> Add Customer
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success rounded-3 mb-3">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        </div>
+    }
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <i class="bi bi-clipboard-check-fill" style="color:#0f3460;"></i>
+            <div>
+                <div class="stat-num">@Model.TotalSold</div>
+                <div class="stat-label">Policies Sold</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="bi bi-currency-rupee" style="color:#27ae60;"></i>
+            <div>
+                <div class="stat-num">₹@Model.TotalPremium.ToString("N0")</div>
+                <div class="stat-label">Premium Collected</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="bi bi-check-circle-fill" style="color:#27ae60;"></i>
+            <div>
+                <div class="stat-num">@Model.Policies.Count(p => p.PolicyStatus == "Active")</div>
+                <div class="stat-label">Active Policies</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="bi bi-hourglass-split" style="color:#e67e22;"></i>
+            <div>
+                <div class="stat-num">@Model.Policies.Count(p => p.PolicyStatus == "Pending")</div>
+                <div class="stat-label">Pending Policies</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Customers Quick Actions -->
+    <div class="broker-card" style="margin-bottom:1.5rem;">
+        <div class="broker-card-header">
+            <h5><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+        </div>
+        <div class="quick-actions-grid">
+            <a asp-controller="Customer" asp-action="CPlans" class="quick-action-btn">
+                <i class="bi bi-shield-plus"></i>
+                <span>Sell Policy</span>
+            </a>
+            <a asp-controller="Broker" asp-action="AddCustomer" class="quick-action-btn">
+                <i class="bi bi-person-plus"></i>
+                <span>Add Customer</span>
+            </a>
+            <a asp-controller="Broker" asp-action="MyCustomers" class="quick-action-btn">
+                <i class="bi bi-people"></i>
+                <span>My Customers</span>
+            </a>
+            <a asp-controller="Home" asp-action="ContactUs" class="quick-action-btn">
+                <i class="bi bi-headset"></i>
+                <span>Support</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Policies Sold Table -->
+    <div class="broker-card">
+        <div class="broker-card-header">
+            <h5><i class="bi bi-table me-2"></i>Policies Sold</h5>
+            <input type="text" id="searchPolicy" placeholder="Search policy..."
+                   class="search-input" onkeyup="filterPolicies()" />
+        </div>
+
+        @if (Model.Policies != null && Model.Policies.Any())
+        {
+            <div class="table-responsive">
+                <table id="policyTable">
+                    <thead>
+                        <tr>
+                            <th>Policy No.</th>
+                            <th>Customer</th>
+                            <th>Insurance Type</th>
+                            <th>Plan</th>
+                            <th>Premium</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var policy in Model.Policies)
+                        {
+                            <tr>
+                                <td><span class="policy-num">@(policy.PolicyNumber ?? "Pending")</span></td>
+                                <td>@(policy.FullName ?? "-")</td>
+                                <td>@(policy.InsuranceType ?? "-")</td>
+                                <td>@(policy.SchemeName ?? "-")</td>
+                                <td>₹@policy.PremiumAmount.ToString("N0")</td>
+                                <td>@(policy.PolicyDate.HasValue? policy.PolicyDate.Value.ToString("dd MMM yyyy") : "-")</td>
+                                <td>
+                                    <span class="badge @(policy.PolicyStatus == "Active" ? "badge-green" :
+                                                                                                  policy.PolicyStatus == "Pending" ? "badge-orange" : "badge-red")">
+                                        @policy.PolicyStatus
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state" style="padding: 3rem;">
+                <i class="bi bi-clipboard-x"></i>
+                <h5>No Policies Sold Yet</h5>
+                <p>Start selling by clicking "Sell New Policy" above.</p>
+            </div>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        function filterPolicies() {
+            const input = document.getElementById('searchPolicy').value.toLowerCase();
+            const rows  = document.querySelectorAll('#policyTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(input) ? '' : 'none';
+            });
+        }
+    </script>
+}
+</body>
+</html>

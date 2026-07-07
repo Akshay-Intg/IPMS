@@ -1,0 +1,1076 @@
+﻿@model Ipms.Frontend.Models.PolicyFormModel
+
+@{
+    var insuranceType = ViewBag.InsuranceType?.ToString() ?? Model?.InsuranceType ?? "Health";
+    var schemeId = Convert.ToInt32(ViewBag.SchemeId ?? 0);
+    ViewData["Title"] = " Insurance Form";
+    var isGroup = insuranceType == "Group";
+    var planName = ViewBag.PlanName?.ToString() ?? "";
+
+    var sumRanges = new Dictionary<int, (decimal Min, decimal Max)>
+    {
+        { 5,  (50000,   500000)  },
+        { 6,  (100000,  800000)  },
+        { 3,  (50000,  1000000) },
+        { 4,  (50000,  1000000) },
+        { 7,  (100000, 1000000) },
+        { 8,  (500000,  5000000) },
+        { 9,  (300000,  3000000) },
+        { 10, (50000,   500000)  },
+        { 11, (25000,   250000)  },
+    };
+
+    decimal minSum = 0, maxSum = 0;
+    if (sumRanges.ContainsKey(schemeId))
+    {
+        var range = sumRanges[schemeId];
+        minSum = range.Item1;
+        maxSum = range.Item2;
+    }
+
+    var steps = new List<decimal>();
+    if (minSum > 0 && maxSum > 0)
+    {
+        decimal current = minSum;
+        while (current <= maxSum)
+        {
+            steps.Add(current);
+            if (current < 100000) current += 25000;
+            else if (current < 500000) current += 100000;
+            else if (current < 2000000) current += 500000;
+            else if (current < 10000000) current += 1000000;
+            else current += 5000000;
+
+            if (current > maxSum && !steps.Contains(maxSum))
+                steps.Add(maxSum);
+        }
+    }
+}
+
+<link rel="stylesheet" href="~/css/insuranceform.css" />
+
+<div class="ins-wrapper">
+
+    <div id="ajaxAlert" class="alert alert-danger rounded-3 mb-3" style="display:none;">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        <span id="ajaxAlertMsg"></span>
+    </div>
+    <div id="ajaxSuccess" class="alert alert-success rounded-3 mb-3" style="display:none;">
+        <i class="bi bi-check-circle me-2"></i>
+        <span id="ajaxSuccessMsg"></span>
+    </div>
+
+    <div class="ins-header">
+        <div>
+            <h6>Insurance Application</h6>
+            <h2><i class="bi bi-shield-plus me-2"></i>Insurance Form</h2>
+        </div>
+    </div>
+
+    <div class="progress-track">
+        <div class="progress-step active" id="ps1">
+            <div class="step-circle">1</div>
+            <div class="step-label">Proposer</div>
+        </div>
+        <div class="progress-step" id="ps2">
+            <div class="step-circle">2</div>
+            <div class="step-label">Medical</div>
+        </div>
+        <div class="progress-step" id="ps3">
+            <div class="step-circle">3</div>
+            <div class="step-label">Documents</div>
+        </div>
+        <div class="progress-step" id="ps4">
+            <div class="step-circle">4</div>
+            <div class="step-label">Nominee</div>
+        </div>
+        <div class="progress-step" id="ps5">
+            <div class="step-circle">5</div>
+            <div class="step-label">Review</div>
+        </div>
+    </div>
+
+    <div class="ins-card">
+
+        <form id="insuranceForm" novalidate onsubmit="return false;">
+
+            <input type="hidden" name="SchemeId" value="@schemeId" />
+            <input type="hidden" name="InsuranceType" value="@insuranceType" />
+            @Html.AntiForgeryToken()
+
+            <!-- ══ STEP 1 — PROPOSER ══ -->
+            <div class="step active" id="step1">
+                <div class="ins-card-header">
+                    <h4><i class="bi bi-person-lines-fill"></i> Proposer Details</h4>
+                </div>
+                <div class="ins-card-body">
+
+                    <div class="section-sep">Personal Information</div>
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" name="FullName"
+                                   value="@Model?.FullName" placeholder="As per Aadhaar"
+                                   maxlength="25"
+                                   oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                                   required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Gender *</label>
+                            <select class="form-select" name="Gender" required>
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Marital Status *</label>
+                            <select class="form-select" name="MaritalStatus" required>
+                                <option value="">Select</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date of Birth *</label>
+                            <input type="date" class="form-control" name="DOB" id="dobInput"
+                                   min="1900-01-01" max="2099-12-31"
+                                   data-val="false" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Contact Number *</label>
+                            <input type="text" class="form-control" name="Contact"
+                                   value="@Model?.Contact" maxlength="10" placeholder="98xxxx"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                   required />
+                        </div>
+                      @*  {{!-- ✅ Bug 1 Fixed: PANCard field with correct name casing --}} *@
+                        <div class="col-md-4">
+                            <label class="form-label">PAN Card *</label>
+                            <input type="text" class="form-control" name="PANCard"
+                                   value="@Model?.PANCard" maxlength="10"
+                                   placeholder="ABCDE1234F"
+                                   style="text-transform:uppercase"
+                                   oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+                                   required />
+                        </div>
+                    </div>
+
+                    <div class="section-sep">Physical Details</div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Height (Feet)</label>
+                            <select id="heightFeet" name="HeightFeet" class="form-select" required>
+                                <option value="" disabled selected>Select</option>
+                                @for (int i = 1; i <= 10; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Height (Inches)</label>
+                            <select id="heightInches" name="HeightInches" class="form-select" required>
+                                <option value="" disabled selected>Select</option>
+                                @for (int i = 0; i <= 11; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                      @*  {{!-- ✅ Bug 5 Fixed: name="Weight" matches PolicyFormModel.Weight --}} *@
+                        <div class="col-md-3">
+                            <label class="form-label">Weight (Kg)</label>
+                            <select id="weightKg" name="Weight" class="form-select" required>
+                                <option value="" disabled selected>Select</option>
+                                @for (int i = 1; i <= 120; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-sep">Communication Address</div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">House No *</label>
+                            <input type="text" class="form-control" name="HouseNo"
+                                   maxlength="40" placeholder="A-21"
+                                   value="@Model?.HouseNo" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Street *</label>
+                            <input type="text" class="form-control" name="Street"
+                                   maxlength="25" placeholder="Windsor Street"
+                                   value="@Model?.Street" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">City *</label>
+                            <input type="text" class="form-control" name="City"
+                                   maxlength="20" value="@Model?.City" placeholder="Delhi"
+                                   oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                                   required />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Pin Code *</label>
+                            <input type="text" class="form-control" name="PinCode"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                   placeholder="201005" value="@Model?.PinCode"
+                                   maxlength="6" id="zipcodeInput" required />
+                        </div>
+                    </div>
+
+                    @if (isGroup)
+                    {
+                        <div class="section-sep">Organization Details</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Organization Name *</label>
+                                <input type="text" class="form-control" name="OrganizationName"
+                                       maxlength="50" value="@Model?.OrganizationName" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Member Count *</label>
+                                <input type="number" class="form-control" name="MemberCount"
+                                       min="2" value="@Model?.MemberCount" required />
+                            </div>
+                        </div>
+                    }
+
+                    <div class="section-sep">Policy Details</div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Sum Assured (₹) *</label>
+                            @if (steps.Count > 0)
+                            {
+                                <select class="form-select" name="SumAssured" required>
+                                    <option value="" disabled selected>Select Sum Assured</option>
+                                    @foreach (var amount in steps)
+                                    {
+                                        var display = amount >= 10000000
+                                        ? "₹" + (amount / 10000000).ToString("0.##") + " Cr"
+                                        : amount >= 100000
+                                        ? "₹" + (amount / 100000).ToString("0.##") + " L"
+                                        : "₹" + amount.ToString("N0");
+                                        <option value="@amount">@display</option>
+                                    }
+                                </select>
+                                <small class="text-muted">
+                                    Range: ₹@minSum.ToString("N0") – ₹@maxSum.ToString("N0")
+                                </small>
+                            }
+                            else
+                            {
+                                <input type="number" class="form-control" name="SumAssured"
+                                       min="1000" required />
+                            }
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Policy Term (Years) *</label>
+                            <select class="form-select" name="PolicyTerm" required>
+                                <option value="">Select</option>
+                                @for (int y = 1; y <= 30; y++)
+                                {
+                                    var label = y + " Year" + (y > 1 ? "s" : "");
+                                    <option value="@y">@label</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label">Selected Plan</label>
+                                <input type="text" class="form-control" name="PlanName"
+                                       value="@planName" readonly
+                                       style="background:#f0f4f8; color:#555; cursor:not-allowed;" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button type="button" class="btn-next" onclick="nextStep(2)">
+                            Medical Details <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ STEP 2 — MEDICAL ══ -->
+            <div class="step" id="step2">
+                <div class="ins-card-header">
+                    <h4><i class="bi bi-heart-pulse"></i> Medical Questions</h4>
+                </div>
+                <div class="ins-card-body">
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label class="form-label">Do you smoke?</label>
+                            <select class="form-select" name="Smokes" required>
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Medical History</label>
+                            <textarea class="form-control" name="MedicalHistory" rows="4"
+                                      placeholder="List any pre-existing conditions..."
+                                      maxlength="100">@Model?.MedicalHistory</textarea>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button type="button" class="btn-back-step" onclick="prevStep(1)">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-next" onclick="nextStep(3)">
+                            Document Details <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ STEP 3 — DOCUMENTS ══ -->
+            <div class="step" id="step3">
+                <div class="ins-card-header">
+                    <h4><i class="bi bi-file-earmark-text"></i> Document Submission</h4>
+                </div>
+                <div class="ins-card-body">
+
+                    <div class="doc-mode-toggle mb-4">
+                        <button type="button" class="doc-mode-btn active" id="modeUploadBtn"
+                                onclick="setDocMode('upload')">
+                            <i class="bi bi-upload"></i> Upload from Device
+                        </button>
+                        <button type="button" class="doc-mode-btn" id="modeFetchBtn"
+                                onclick="setDocMode('fetch')">
+                            <i class="bi bi-cloud-download"></i> Fetch via Number
+                        </button>
+                    </div>
+
+                    <!-- UPLOAD MODE -->
+                    <div id="uploadMode">
+                        <div class="section-sep">Upload Documents (PDF only, max 2MB each)</div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Aadhaar Card (PDF) *</label>
+                                <div class="doc-upload-box" id="aadhaarUploadBox">
+                                    <input type="file" id="aadhaarFile" accept=".pdf"
+                                           style="display:none"
+                                           onchange="handleFileUpload(this, 'aadhaar')" />
+                                    <div class="doc-upload-placeholder"
+                                         onclick="document.getElementById('aadhaarFile').click()">
+                                        <i class="bi bi-file-earmark-arrow-up"></i>
+                                        <p>Click to upload Aadhaar PDF</p>
+                                        <small>PDF only · Max 2MB</small>
+                                    </div>
+                                    <div class="doc-upload-preview" id="aadhaarPreview"
+                                         style="display:none">
+                                        <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                        <span id="aadhaarFileName"></span>
+                                        <button type="button" class="doc-remove-btn"
+                                                onclick="removeFile('aadhaar')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="doc-status" id="aadhaarStatus"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">PAN Card (PDF) *</label>
+                                <div class="doc-upload-box" id="panUploadBox">
+                                    <input type="file" id="panFile" accept=".pdf"
+                                           style="display:none"
+                                           onchange="handleFileUpload(this, 'pan')" />
+                                    <div class="doc-upload-placeholder"
+                                         onclick="document.getElementById('panFile').click()">
+                                        <i class="bi bi-file-earmark-arrow-up"></i>
+                                        <p>Click to upload PAN Card PDF</p>
+                                        <small>PDF only · Max 2MB</small>
+                                    </div>
+                                    <div class="doc-upload-preview" id="panPreview"
+                                         style="display:none">
+                                        <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                        <span id="panFileName"></span>
+                                        <button type="button" class="doc-remove-btn"
+                                                onclick="removeFile('pan')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="doc-status" id="panStatus"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FETCH MODE -->
+                    <div id="fetchMode" style="display:none">
+                        <div class="section-sep">Enter Document Numbers for Auto-Fetch</div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Aadhaar Number *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="aadhaarNumber"
+                                           placeholder="XXXX XXXX XXXX" maxlength="14"
+                                           oninput="formatAadhaar(this)" />
+                                    <button type="button" class="btn btn-fetch"
+                                            id="fetchAadhaarBtn"
+                                            onclick="fetchDocument('aadhaar')">
+                                        <i class="bi bi-search"></i> Fetch
+                                    </button>
+                                </div>
+                                <div class="doc-status mt-2" id="aadhaarFetchStatus"></div>
+                                <div class="doc-fetched-preview" id="aadhaarFetchedPreview"
+                                     style="display:none">
+                                    <i class="bi bi-patch-check-fill text-success"></i>
+                                    <span>Aadhaar fetched from DigiLocker</span>
+                                    <small id="aadhaarFetchedName"></small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">PAN Number *</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="panNumber"
+                                           placeholder="ABCDE1234F" maxlength="10"
+                                           oninput="this.value = this.value.toUpperCase()" />
+                                    <button type="button" class="btn btn-fetch" id="fetchPanBtn"
+                                            onclick="fetchDocument('pan')">
+                                        <i class="bi bi-search"></i> Fetch
+                                    </button>
+                                </div>
+                                <div class="doc-status mt-2" id="panFetchStatus"></div>
+                                <div class="doc-fetched-preview" id="panFetchedPreview"
+                                     style="display:none">
+                                    <i class="bi bi-patch-check-fill text-success"></i>
+                                    <span>PAN fetched from IT Dept</span>
+                                    <small id="panFetchedName"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="docAadhaarReady" value="false" />
+                    <input type="hidden" id="docPanReady" value="false" />
+                    <input type="hidden" id="docMode" value="upload" />
+
+                    <div id="docValidationMsg" class="alert alert-warning mt-3" style="display:none">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <span id="docValidationText"></span>
+                    </div>
+
+                    <div class="step-actions">
+                        <button type="button" class="btn-back-step" onclick="prevStep(2)">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-next" id="docNextBtn" onclick="nextStep(4)">
+                            Nominee Details <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ STEP 4 — NOMINEE ══ -->
+            <div class="step" id="step4">
+                <div class="ins-card-header">
+                    <h4><i class="bi bi-people"></i> Nominee Details</h4>
+                </div>
+                <div class="ins-card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Nominee Name *</label>
+                            <input type="text" class="form-control" name="NomineeName"
+                                   maxlength="30" value="@Model?.NomineeName"
+                                   oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                                   required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Relationship *</label>
+                            <select class="form-select" name="NomineeRelationship" required>
+                                <option value="">Select</option>
+                                <option value="Spouse">Spouse</option>
+                                <option value="Father">Father</option>
+                                <option value="Mother">Mother</option>
+                                <option value="Son">Son</option>
+                                <option value="Daughter">Daughter</option>
+                                <option value="Sibling">Sibling</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button type="button" class="btn-back-step" onclick="prevStep(3)">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-next" onclick="nextStep(5)">
+                            Review & Submit <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══ STEP 5 — REVIEW ══ -->
+            <div class="step" id="step5">
+                <div class="ins-card-header">
+                    <h4><i class="bi bi-clipboard-check"></i> Review & Confirm</h4>
+                </div>
+                <div class="ins-card-body">
+
+                    <div class="section-sep">Personal Details</div>
+                    <div class="summary-grid">
+                        <div class="summary-row"><span>Insurance Type</span><span id="s-type">-</span></div>
+                        <div class="summary-row"><span>Full Name</span><span id="s-name">-</span></div>
+                        <div class="summary-row"><span>Gender</span><span id="s-gender">-</span></div>
+                        <div class="summary-row"><span>Marital Status</span><span id="s-marital">-</span></div>
+                        <div class="summary-row"><span>Date of Birth</span><span id="s-dob">-</span></div>
+                        <div class="summary-row"><span>Contact Number</span><span id="s-contact">-</span></div>
+                        <div class="summary-row"><span>PAN Card</span><span id="s-pan">-</span></div>
+                        <div class="summary-row"><span>Height</span><span id="s-height">-</span></div>
+                        <div class="summary-row"><span>Weight</span><span id="s-weight">-</span></div>
+                        <div class="summary-row full"><span>Address</span><span id="s-address">-</span></div>
+                    </div>
+
+                    <div class="section-sep">Documents</div>
+                    <div class="summary-grid">
+                        <div class="summary-row"><span>Aadhaar Card</span><span id="s-aadhaar-status">-</span></div>
+                        <div class="summary-row"><span>PAN Card</span><span id="s-pan-status">-</span></div>
+                    </div>
+
+                    <div class="section-sep">Medical</div>
+                    <div class="summary-grid">
+                        <div class="summary-row"><span>Smokes</span><span id="s-smokes">-</span></div>
+                        <div class="summary-row full"><span>Medical History</span><span id="s-medical">-</span></div>
+                    </div>
+
+                    <div class="section-sep">Nominee</div>
+                    <div class="summary-grid">
+                        <div class="summary-row"><span>Nominee Name</span><span id="s-nominee">-</span></div>
+                        <div class="summary-row"><span>Relationship</span><span id="s-relation">-</span></div>
+                    </div>
+
+                    <div class="section-sep">Policy</div>
+                    <div class="summary-grid">
+                        <div class="summary-row"><span>Sum Assured</span><span id="s-sum">-</span></div>
+                        <div class="summary-row"><span>Policy Term</span><span id="s-term">-</span></div>
+                        <div class="summary-row full"><span>Selected Plan</span><span id="s-plan">-</span></div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button type="button" class="btn-back-step" onclick="prevStep(4)">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-submit" id="submitBtn" onclick="submitForm()">
+                            <i class="bi bi-check-circle-fill"></i> Confirm & Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ZipcodeScript" />
+    <script>
+
+        const FORM_KEY = 'ipms_insurance_form';
+        const STEP_KEY = 'ipms_current_step';
+
+        // ✅ Bug 1 Fixed: PANCard added to ALL_FIELDS
+        // ✅ Bug 5 Fixed: WeightKg → Weight
+        const ALL_FIELDS = [
+            'FullName', 'Gender', 'MaritalStatus', 'DOB', 'Contact',
+            'PANCard',
+            'HouseNo', 'Street', 'City', 'PinCode',
+            'SumAssured', 'PolicyTerm',
+            'HeightFeet', 'HeightInches', 'Weight',
+            'Smokes', 'MedicalHistory',
+            'NomineeName', 'NomineeRelationship',
+            'OrganizationName', 'MemberCount'
+        ];
+
+        // ── Document State ────────────────────────────────────────────
+        let docState = {
+            mode: 'upload',
+            aadhaarReady: false,
+            panReady: false,
+            aadhaarBase64: null,
+            panBase64: null,
+            aadhaarFetchedName: '',
+            panFetchedName: ''
+        };
+
+        // ── Session Storage ───────────────────────────────────────────
+        function saveFormData() {
+            const data = {};
+            ALL_FIELDS.forEach(name => {
+                const el = document.querySelector(`[name="${name}"]`);
+                if (el) data[name] = el.value;
+            });
+            sessionStorage.setItem(FORM_KEY, JSON.stringify(data));
+            sessionStorage.setItem(STEP_KEY, currentStep.toString());
+            sessionStorage.setItem('ipms_page_active', 'true');
+        }
+
+        function restoreFormData() {
+            const raw       = sessionStorage.getItem(FORM_KEY);
+            const savedStep = sessionStorage.getItem(STEP_KEY);
+            if (raw) {
+                const data = JSON.parse(raw);
+                ALL_FIELDS.forEach(name => {
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el && data[name] !== undefined) el.value = data[name];
+                });
+            }
+            if (savedStep) goToStep(parseInt(savedStep));
+        }
+
+        function attachSaveListeners() {
+            ALL_FIELDS.forEach(name => {
+                const el = document.querySelector(`[name="${name}"]`);
+                if (el) {
+                    el.addEventListener('input',  saveFormData);
+                    el.addEventListener('change', saveFormData);
+                }
+            });
+        }
+
+        function clearFormData() {
+            sessionStorage.removeItem(FORM_KEY);
+            sessionStorage.removeItem(STEP_KEY);
+        }
+
+        // ── Step Navigation ───────────────────────────────────────────
+        let currentStep = 1;
+
+        function nextStep(step) {
+            if (!validateStep(step - 1)) return;
+            goToStep(step);
+        }
+
+        function prevStep(step) {
+            goToStep(step);
+        }
+
+        function goToStep(step) {
+            currentStep = step;
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            for (let i = 1; i <= 5; i++) {
+                const ps = document.getElementById('ps' + i);
+                ps.classList.remove('active', 'done');
+                if (i < step)  ps.classList.add('done');
+                if (i === step) ps.classList.add('active');
+            }
+            if (step === 5) fillSummary();
+            saveFormData();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ── Validation ────────────────────────────────────────────────
+        function validateStep(step) {
+            if (step === 3) return validateDocStep();
+
+            const stepEl = document.getElementById('step' + step);
+            const inputs = stepEl.querySelectorAll('input[required], select[required]');
+            let valid = true;
+            let firstInvalid = null;
+
+            inputs.forEach(input => {
+                input.classList.remove('error');
+                if (!input.value.trim()) {
+                    input.classList.add('error');
+                    if (!firstInvalid) firstInvalid = input;
+                    valid = false;
+                }
+            });
+
+            if (step === 1) {
+                // DOB validation
+                const dobInput = document.querySelector('input[name="DOB"]');
+                const inputVal = dobInput.value;
+                if (inputVal) {
+                    const dob   = new Date(inputVal);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const year  = parseInt(inputVal.split('-')[0]);
+                    const age   = today.getFullYear() - dob.getFullYear();
+                    const isInvalid = year < 1900 || year > today.getFullYear()
+                                   || dob >= today || age < 18 || age > 100;
+                    if (isInvalid) {
+                        dobInput.classList.add('error');
+                        alert('Please enter a valid date of birth. You must be at least 18 years old.');
+                        return false;
+                    }
+                }
+
+                // PAN Card format validation
+                const panInput = document.querySelector('input[name="PANCard"]');
+                if (panInput && panInput.value) {
+                    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+                    if (!panRegex.test(panInput.value)) {
+                        panInput.classList.add('error');
+                        alert('Invalid PAN Card format. Expected: ABCDE1234F');
+                        return false;
+                    }
+                }
+            }
+
+            if (!valid) {
+                alert('Please fill all required fields before proceeding.');
+                if (firstInvalid) firstInvalid.focus();
+            }
+
+            return valid;
+        }
+
+        // ── DOB Listeners ─────────────────────────────────────────────
+        document.querySelector('input[name="DOB"]').addEventListener('blur', function () {
+            const inputVal = this.value;
+            if (!inputVal) return;
+            const parts = inputVal.split('-');
+            const year  = parseInt(parts[0]);
+            if (!year || parts[0].length < 4) return;
+            const dob   = new Date(inputVal);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const age   = today.getFullYear() - dob.getFullYear();
+            if (year < 1900 || year > today.getFullYear() || dob >= today || age < 18 || age > 100) {
+                alert('Please enter a valid date of birth. You must be at least 18 years old.');
+                this.value = '';
+                this.classList.add('error');
+                return;
+            }
+            this.classList.remove('error');
+        });
+
+        document.querySelector('input[name="DOB"]').addEventListener('input', function () {
+            const parts = this.value.split('-');
+            if (parts[0] && parts[0].length > 4) {
+                parts[0] = parts[0].substring(0, 4);
+                this.value = parts.join('-');
+            }
+        });
+
+        // ── Document Step ─────────────────────────────────────────────
+        function setDocMode(mode) {
+            docState.mode = mode;
+            document.getElementById('uploadMode').style.display = mode === 'upload' ? '' : 'none';
+            document.getElementById('fetchMode').style.display  = mode === 'fetch'  ? '' : 'none';
+            document.getElementById('modeUploadBtn').classList.toggle('active', mode === 'upload');
+            document.getElementById('modeFetchBtn').classList.toggle('active', mode === 'fetch');
+            if (mode === 'upload') {
+                docState.aadhaarReady = !!docState.aadhaarBase64;
+                docState.panReady     = !!docState.panBase64;
+            } else {
+                docState.aadhaarReady = !!docState.aadhaarFetchedName;
+                docState.panReady     = !!docState.panFetchedName;
+            }
+            hideDocValidation();
+        }
+
+        function handleFileUpload(input, type) {
+            const boxId     = type === 'aadhaar' ? 'aadhaarUploadBox' : 'panUploadBox';
+            const previewId = type === 'aadhaar' ? 'aadhaarPreview'   : 'panPreview';
+            const nameId    = type === 'aadhaar' ? 'aadhaarFileName'  : 'panFileName';
+            const statusId  = type === 'aadhaar' ? 'aadhaarStatus'    : 'panStatus';
+            const file      = input.files[0];
+            const box       = document.getElementById(boxId);
+            const preview   = document.getElementById(previewId);
+            if (!file) return;
+            if (file.type !== 'application/pdf') {
+                setDocStatus(statusId, 'Only PDF files are accepted.', 'error');
+                box.classList.add('error-box');
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                setDocStatus(statusId, 'File size must be under 2MB.', 'error');
+                box.classList.add('error-box');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (type === 'aadhaar') {
+                    docState.aadhaarBase64 = e.target.result;
+                    docState.aadhaarReady  = true;
+                } else {
+                    docState.panBase64 = e.target.result;
+                    docState.panReady  = true;
+                }
+                document.getElementById(nameId).textContent = file.name;
+                document.querySelector(`#${boxId} .doc-upload-placeholder`).style.display = 'none';
+                preview.style.display = 'flex';
+                box.classList.remove('error-box');
+                box.classList.add('has-file');
+                setDocStatus(statusId, '✓ Document ready', 'success');
+                hideDocValidation();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeFile(type) {
+            const fileId    = type === 'aadhaar' ? 'aadhaarFile'      : 'panFile';
+            const boxId     = type === 'aadhaar' ? 'aadhaarUploadBox' : 'panUploadBox';
+            const previewId = type === 'aadhaar' ? 'aadhaarPreview'   : 'panPreview';
+            const statusId  = type === 'aadhaar' ? 'aadhaarStatus'    : 'panStatus';
+            document.getElementById(fileId).value = '';
+            document.getElementById(previewId).style.display = 'none';
+            document.querySelector(`#${boxId} .doc-upload-placeholder`).style.display = '';
+            document.getElementById(boxId).classList.remove('has-file', 'error-box');
+            setDocStatus(statusId, '', '');
+            if (type === 'aadhaar') { docState.aadhaarBase64 = null; docState.aadhaarReady = false; }
+            else                    { docState.panBase64 = null;     docState.panReady = false; }
+        }
+
+        function formatAadhaar(input) {
+            let v = input.value.replace(/\D/g, '').substring(0, 12);
+            input.value = v.replace(/(\d{4})(?=\d)/g, '$1 ');
+        }
+
+        function fetchDocument(type) {
+            const btnId     = type === 'aadhaar' ? 'fetchAadhaarBtn'       : 'fetchPanBtn';
+            const statusId  = type === 'aadhaar' ? 'aadhaarFetchStatus'    : 'panFetchStatus';
+            const previewId = type === 'aadhaar' ? 'aadhaarFetchedPreview' : 'panFetchedPreview';
+            const nameId    = type === 'aadhaar' ? 'aadhaarFetchedName'    : 'panFetchedName';
+            const inputId   = type === 'aadhaar' ? 'aadhaarNumber'         : 'panNumber';
+            const value     = document.getElementById(inputId).value.replace(/\s/g, '');
+            const btn       = document.getElementById(btnId);
+            if (type === 'aadhaar' && !/^\d{12}$/.test(value)) {
+                setDocStatus(statusId, 'Enter a valid 12-digit Aadhaar number.', 'error');
+                return;
+            }
+            if (type === 'pan' && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(value)) {
+                setDocStatus(statusId, 'Enter a valid PAN (e.g. ABCDE1234F).', 'error');
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            setDocStatus(statusId, 'Fetching from government portal...', '');
+            setTimeout(() => {
+                const fakeName = document.querySelector('[name="FullName"]').value || 'Registered Holder';
+                document.getElementById(nameId).textContent = 'Name on record: ' + fakeName;
+                document.getElementById(previewId).style.display = 'flex';
+                setDocStatus(statusId, '✓ Document fetched successfully', 'success');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Fetched';
+                btn.style.background = '#27ae60';
+                if (type === 'aadhaar') { docState.aadhaarReady = true; docState.aadhaarFetchedName = fakeName; }
+                else                    { docState.panReady = true;     docState.panFetchedName = fakeName; }
+                hideDocValidation();
+            }, 2000);
+        }
+
+        function setDocStatus(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className   = 'doc-status ' + type;
+        }
+
+        function validateDocStep() {
+            const mode = docState.mode;
+            if (mode === 'upload') {
+                if (!docState.aadhaarBase64 && !docState.panBase64) {
+                    showDocValidation('Please upload both Aadhaar and PAN Card PDFs to proceed.');
+                    return false;
+                }
+                if (!docState.aadhaarBase64) {
+                    showDocValidation('Please upload your Aadhaar Card PDF.');
+                    return false;
+                }
+                if (!docState.panBase64) {
+                    showDocValidation('Please upload your PAN Card PDF.');
+                    return false;
+                }
+            }
+            if (mode === 'fetch') {
+                if (!docState.aadhaarFetchedName && !docState.panFetchedName) {
+                    showDocValidation('Please fetch both Aadhaar and PAN documents to proceed.');
+                    return false;
+                }
+                if (!docState.aadhaarFetchedName) {
+                    showDocValidation('Please fetch your Aadhaar document first.');
+                    return false;
+                }
+                if (!docState.panFetchedName) {
+                    showDocValidation('Please fetch your PAN Card document first.');
+                    return false;
+                }
+            }
+            docState.aadhaarReady = true;
+            docState.panReady     = true;
+            return true;
+        }
+
+        function showDocValidation(msg) {
+            document.getElementById('docValidationText').textContent = msg;
+            document.getElementById('docValidationMsg').style.display = 'block';
+        }
+
+        function hideDocValidation() {
+            document.getElementById('docValidationMsg').style.display = 'none';
+        }
+
+        // ── Summary ───────────────────────────────────────────────────
+        function val(name) {
+            const el = document.querySelector(`[name="${name}"]`);
+            return el ? el.value.trim() : '';
+        }
+
+        function fillSummary() {
+            document.getElementById('s-type').textContent     = val('InsuranceType');
+            document.getElementById('s-name').textContent     = val('FullName');
+            document.getElementById('s-gender').textContent   = val('Gender');
+            document.getElementById('s-marital').textContent  = val('MaritalStatus');
+            document.getElementById('s-dob').textContent      = val('DOB');
+            document.getElementById('s-contact').textContent  = val('Contact');
+            // ✅ Bug 1 Fixed: PAN now shows in summary
+            document.getElementById('s-pan').textContent      = val('PANCard');
+            // ✅ Bug 5 Fixed: Weight (not WeightKg)
+            document.getElementById('s-height').textContent   = val('HeightFeet') + ' ft ' + val('HeightInches') + ' in';
+            document.getElementById('s-weight').textContent   = val('Weight') + ' kg';
+            document.getElementById('s-address').textContent  =
+                val('HouseNo') + ', ' + val('Street') + ', ' + val('City') + ' - ' + val('PinCode');
+            document.getElementById('s-smokes').textContent   = val('Smokes') === 'true' ? 'Yes' : 'No';
+            document.getElementById('s-medical').textContent  = val('MedicalHistory') || 'None';
+            document.getElementById('s-nominee').textContent  = val('NomineeName');
+            document.getElementById('s-relation').textContent = val('NomineeRelationship');
+
+            const modeLabel     = docState.mode === 'upload' ? 'Uploaded (PDF)' : 'Fetched via Number';
+            const aadhaarEl     = document.getElementById('s-aadhaar-status');
+            const panStatusEl   = document.getElementById('s-pan-status');
+            aadhaarEl.textContent   = docState.aadhaarReady ? modeLabel : 'Not Submitted';
+            aadhaarEl.style.cssText = docState.aadhaarReady ? 'color:#2563eb; font-weight:600;' : 'color:#9ca3af;';
+            panStatusEl.textContent   = docState.panReady ? modeLabel : 'Not Submitted';
+            panStatusEl.style.cssText = docState.panReady ? 'color:#2563eb; font-weight:600;' : 'color:#9ca3af;';
+
+            const sum = val('SumAssured');
+            document.getElementById('s-sum').textContent  = sum ? '₹' + Number(sum).toLocaleString('en-IN') : '-';
+            document.getElementById('s-term').textContent = val('PolicyTerm') ? val('PolicyTerm') + ' Year(s)' : '-';
+            document.getElementById('s-plan').textContent = val('PlanName') || '@planName';
+        }
+
+        // ── Submit ────────────────────────────────────────────────────
+        function submitForm() {
+            // ✅ Bug 6 Fixed: all validation checks BEFORE disabling button
+            const pincode  = val('PinCode');
+            const pinInput = document.getElementById('zipcodeInput');
+
+            if (!pincode || pincode.length !== 6) {
+                showError('Please enter a valid 6-digit pincode.');
+                return;
+            }
+            if (pinInput.classList.contains('error')) {
+                showError('Zipcode not found. Please enter a valid one.');
+                return;
+            }
+            if (!docState.aadhaarReady || !docState.panReady) {
+                showError('Documents not verified. Please go back and complete Step 3.');
+                return;
+            }
+
+            // Only disable button AFTER all checks pass
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+            hideAlerts();
+
+            // ✅ Bug 2 Fixed: PANCard added to payload
+            // ✅ Bug 5 Fixed: Weight (not WeightKg)
+            // ✅ Bug 1 Fixed: Contact not uppercased
+            const payload = {
+                SchemeId:            parseInt(val('SchemeId'))    || 0,
+                InsuranceType:       val('InsuranceType'),
+                FullName:            val('FullName'),
+                MaritalStatus:       val('MaritalStatus'),
+                Gender:              val('Gender'),
+                Contact:             val('Contact'),
+                PANCard:             val('PANCard').toUpperCase(),
+                DOB:                 val('DOB'),
+                HeightFeet:          parseInt(val('HeightFeet'))  || 0,
+                HeightInches:        parseInt(val('HeightInches'))|| 0,
+                Weight:              parseFloat(val('Weight'))    || 0,
+                HouseNo:             val('HouseNo'),
+                Street:              val('Street'),
+                City:                val('City'),
+                PinCode:             val('PinCode'),
+                Smokes:              val('Smokes') === 'true',
+                MedicalHistory:      val('MedicalHistory') || '',
+                NomineeName:         val('NomineeName'),
+                NomineeRelationship: val('NomineeRelationship'),
+                SumAssured:          parseFloat(val('SumAssured'))|| 0,
+                PolicyTerm:          parseInt(val('PolicyTerm'))  || 0,
+                OrganizationName:    val('OrganizationName')      || null,
+                MemberCount:         parseInt(val('MemberCount')) || null,
+                DocumentsVerified:   true,
+                AadhaarDocMode:      docState.mode,
+                AadhaarNumber:       docState.mode === 'fetch'
+                                         ? document.getElementById('aadhaarNumber').value.replace(/\s/g, '')
+                                         : null,
+                PanNumber:           docState.mode === 'fetch'
+                                         ? document.getElementById('panNumber').value
+                                         : null
+            };
+
+            fetch('/Customer/InsuranceForm', {
+                method:  'POST',
+                headers: {
+                    'Content-Type':             'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    clearFormData();
+                    window.location.href = '/Customer/Payment?policyId=' + data.policyId
+                                     + '&amount='   + data.premium
+                                     + '&type='     + encodeURIComponent(val('InsuranceType'))
+                                     + '&plan='     + encodeURIComponent(val('PlanName'));
+                } else {
+                    showError(data.message || data.error || 'Something went wrong.');
+                    resetBtn();
+                }
+            })
+            .catch(() => {
+                showError('Network error. Please try again.');
+                resetBtn();
+            });
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Confirm & Submit';
+        }
+
+        function showError(msg) {
+            document.getElementById('ajaxAlertMsg').textContent = msg;
+            document.getElementById('ajaxAlert').style.display  = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showSuccess(msg) {
+            document.getElementById('ajaxSuccessMsg').textContent = msg;
+            document.getElementById('ajaxSuccess').style.display  = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function hideAlerts() {
+            document.getElementById('ajaxAlert').style.display   = 'none';
+            document.getElementById('ajaxSuccess').style.display = 'none';
+        }
+
+        // ── Init ──────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            attachSaveListeners();
+            const navEntry  = performance.getEntriesByType('navigation')[0];
+            const isRefresh = navEntry && navEntry.type === 'reload';
+            if (isRefresh) restoreFormData();
+            else           clearFormData();
+        });
+
+    </script>
+}

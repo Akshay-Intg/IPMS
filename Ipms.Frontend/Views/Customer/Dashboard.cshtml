@@ -1,0 +1,188 @@
+﻿@model Ipms.Frontend.Models.Customerdashboard
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<link rel="stylesheet" href="~/css/Dashboard.css" />
+
+<div class="container">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div class="greeting">
+            <h2>Welcome back, @Model.FullName 👋</h2>
+            <p>Here's a summary of your insurance policies.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a asp-controller="Customer" asp-action="CPlans" class="btn">
+                + Buy New Plan
+            </a>
+
+            <a class="btn @(ViewContext.RouteData.Values["action"]?.ToString() == "GetClaimsById" ? "active" : "")"
+               asp-controller="Claims"
+               asp-action="GetClaimsById">
+                <i class="bi bi-file-earmark-check"></i> Claims
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="number">@Model.TotalPolicies</div>
+            <div class="label">My Policies</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">@Model.ActiveClaims</div>
+            <div class="label">Active Claims</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">₹@Model.TotalPremiumPaid.ToString("N0")</div>
+            <div class="label">Total Premium Paid</div>
+        </div>
+    </div>
+
+    <!-- All Policies Table -->
+    <div class="card">
+        <div class="card-header">
+            My Policies
+        </div>
+
+        @if (Model.Policies != null && Model.Policies.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Policy No.</th>
+                        <th>Type</th>
+                        <th>Sum Assured</th>
+                        <th>Premium</th>
+                        <th>Term</th>
+                        <th>Start Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Policies)
+                    {
+                        <tr>
+                            <td><strong>@p.PolicyNumber</strong></td>
+                            <td>
+                                @{
+                                    switch (p.InsuranceType)
+                                    {
+                                        case "1":
+                                            @:Health
+                                            break;
+                                        case "2":
+                                            @:Life
+                                            break;
+                                        case "3":
+                                            @:Term
+                                            break;
+                                        case "4":
+                                            @:Group
+                                            break;
+                                        default:
+                                            @:Unknown
+                                            break;
+                                    }
+                                }
+                            </td>
+                            
+                            <td>₹@p.SumAssured.ToString("N0")</td>
+                            <td>₹@p.PremiumAmount.ToString("N0")</td>
+                            <td>@(p.PolicyTerm.HasValue? p.PolicyTerm + " yr" : "-")</td>
+                            <td>@(p.PolicyDate.HasValue? p.PolicyDate.Value.ToString("dd-MMM-yyyy") : "-")</td>
+                            <td>
+                                @if (p.PolicyStatus == "Active")
+                                {
+                                    <span class="badge badge-green">@p.PolicyStatus</span>
+                                }
+                                else if (p.PolicyStatus == "Pending")
+                                {
+                                    <span class="badge badge-orange">@p.PolicyStatus</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-red">@p.PolicyStatus</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Customer"
+                                   asp-action="PolicyDetails"
+                                   asp-route-id="@p.PolicyId"
+                                   class="btn">
+                                    View Details
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="padding: 2.5rem; text-align:center; color:#888;">
+                <p style="margin:0 0 12px;">You don't have any policies yet.</p>
+                <a asp-controller="Customer" asp-action="CPlans" class="btn">
+                    + Buy a Plan
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Payment History -->
+    <div class="card">
+        <div class="card-header">
+            Payment History
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Policy No.</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Policies != null && Model.Policies.Any())
+                {
+                    @foreach (var p in Model.Policies)
+                    {
+                        <tr>
+                            <td>@p.PolicyNumber</td>
+                            <td>₹@p.PremiumAmount.ToString("N0")</td>
+                            <td>@(p.PolicyDate.HasValue? p.PolicyDate.Value.ToString("dd-MMM-yyyy") : "-")</td>
+
+                            @if (p.PaymentStatus == "Paid")
+                            {
+                                <td><span class="badge badge-green">Paid</span></td>
+                            }
+                            else if (p.PaymentStatus == "Refunded")
+                            {
+                                <td><span class="badge badge-blue">Refunded</span></td>
+                            }
+                            else
+                            {
+                                <td><span class="badge badge-red">Pending</span></td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" style="text-align:center; color:#aaa; padding:1.5rem;">
+                            No payment history available.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

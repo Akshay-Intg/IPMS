@@ -1,0 +1,258 @@
+﻿@model Ipms.Frontend.Models.AuditPaginatedList<Ipms.Frontend.Models.AuditLogViewModel>
+
+@{
+    ViewData["Title"] = "Audit Logs";
+}
+
+<link rel="stylesheet" href="~/css/getall.css" />
+
+<link rel="stylesheet" href="~/css/auditlogs.css" />
+
+<div class="customer-list-wrapper">
+
+    <div class="page-header">
+        <div>
+            <h2><i class="bi bi-journal-text me-2"></i>Audit Logs</h2>
+            <div class="stats-row" style="margin-top:0.5rem; margin-bottom:0;">
+                <span class="record-count">
+                    Total: @Model.TotalAudits
+                </span>
+                <span class="record-count" style="background:#e3f2fd; color:#1565c0; border-color:#90caf9;">
+                    🔑 Logins: @Model.AuditLogList.Count(a => a.ActionType == "Login")
+                </span>
+                <span class="record-count" style="background:#e8f5e9; color:#2e7d32; border-color:#a5d6a7;">
+                    ✔ Created/Approved: @Model.AuditLogList.Count(a => a.ActionType == "Created" || a.ActionType == "Approved")
+                </span>
+                <span class="record-count" style="background:#fef0f0; color:#d93025; border-color:#f5c6c6;">
+                    ✖ Rejected: @Model.AuditLogList.Count(a => a.ActionType == "Rejected")
+                </span>
+            </div>
+        </div>
+        <span class="record-count">
+            @Model.TotalAudits log@(Model.TotalAudits != 1 ? "s" : "") total
+        </span>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-3">@TempData["Error"]</div>
+    }
+
+    <div class="filter-bar">
+        <div class="search-input-wrap" style="max-width:320px;">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" id="searchInput"
+                   placeholder="Search logs..." maxlength="15"
+                   oninput="filterTable()" />
+            <button class="clear-btn" onclick="clearSearch()"
+                    id="clearBtn" style="display:none;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <button type="button" class="btn-search" onclick="filterTable()">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </div>
+
+        <select class="filter-select" id="entityFilter" onchange="filterTable()">
+            <option value="">All Entities</option>
+            <option value="Customer">Customer</option>
+            <option value="Policy">Policy</option>
+            <option value="Scheme">Scheme</option>
+        </select>
+
+        <select class="filter-select" id="actionFilter" onchange="filterTable()">
+            <option value="">All Actions</option>
+            <option value="Login">Login</option>
+            <option value="Registered">Registered</option>
+            <option value="Created">Created</option>
+            <option value="Updated">Updated</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+        </select>
+
+        <button type="button" class="btn-search" onclick="resetFilters()"
+                style="background:#6c757d;">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+    </div>
+
+    <div class="table-card">
+        <div class="table-responsive" style="max-height:65vh; overflow-y:auto;">
+            <table class="table table-hover mb-0" style="min-width:800px;">
+                <thead>
+                    <tr>
+                        <th>
+                            <a class="text-light" asp-action="AuditLogs"
+                               asp-route-stringOrder="@(ViewData["CurrentSort"].ToString() == "id_asc" ? "id_desc" : "id_asc")"
+                               asp-route-pageNumber="1">
+                                Audit ID
+                            </a>
+                        </th>
+                        <th>Entity</th>
+                        <th>Entity ID</th>
+                        <th>Action</th>
+                        <th>Performed By (User ID)</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    @if (Model.AuditLogList.Any())
+                    {
+                        @foreach (var log in Model.AuditLogList)
+                        {
+                            <tr>
+                                <td><strong>@log.AuditId</strong></td>
+                                <td>
+                                    <span class="entity-pill">
+                                        @log.EntityName
+                                    </span>
+                                </td>
+                                <td>@log.EntityId</td>
+                                <td>
+                                    @{
+                                        var actionClass = log.ActionType?.ToLower() switch
+                                        {
+                                                            "login" => "action-login",
+                                                            "registered" => "action-registered",
+                                                            "created" => "action-created",
+                                                            "approved" => "action-approved",
+                                                            "updated" => "action-updated",
+                                                            "rejected" => "action-rejected",
+                                                            "deleted" => "action-deleted",
+                                            _ => "action-default"
+                                        };
+                                    }
+                                    <span class="action-badge @actionClass">
+                                        @log.ActionType
+                                    </span>
+                                </td>
+                                <td>
+                                    @(log.ActionByUserId.HasValue
+                                                                ? $"User #{log.ActionByUserId}"
+                                                                : "System")
+                                </td>
+                                <td>
+                                    @(log.ActionDate.HasValue
+                                                                ? log.ActionDate.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm:ss")
+                                                                : "-")
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="no-results">
+                                <i class="bi bi-journal-x"></i>
+                                <span>No audit logs found.</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (Model.TotalPages >= 1)
+    {
+        <div class="pagination-wrapper">
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted" style="font-size:0.83rem;">
+                    Showing @((Model.PageIndex - 1) * Model.PageSize + 1)
+                    – @(Math.Min(Model.PageIndex * Model.PageSize, Model.TotalAudits))
+                    of @Model.TotalAudits
+                </span>
+
+                <nav>
+                    <ul class="pagination mb-0">
+
+                        <li class="page-item @( !Model.HasPreviousPage ? "disabled" : "" )">
+                            <a class="page-link"
+                               asp-action="AuditLogs"
+                               asp-route-pageNumber="@(Model.PageIndex - 1)"
+                               asp-route-stringOrder="@ViewData["CurrentSort"]">
+                                ‹ Prev
+                            </a>
+                        </li>
+
+                        @{
+                            int startPage = Math.Max(1, Model.PageIndex - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="AuditLogs"
+                                   asp-route-pageNumber="@i"
+                                   asp-route-stringOrder="@ViewData["CurrentSort"]">
+                                    @i
+                                </a>
+                            </li>
+                        }
+
+                        @if (endPage < Model.TotalPages)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+
+                        <li class="page-item @( !Model.HasNextPage ? "disabled" : "" )">
+                            <a class="page-link"
+                               asp-action="AuditLogs"
+                               asp-route-pageNumber="@(Model.PageIndex + 1)"
+                               asp-route-stringOrder="@ViewData["CurrentSort"]">
+                                Next ›
+                            </a>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            const query      = document.getElementById('searchInput').value.toLowerCase();
+            const entity     = document.getElementById('entityFilter').value.toLowerCase();
+            const action     = document.getElementById('actionFilter').value.toLowerCase();
+            const rows       = document.querySelectorAll('#tableBody tr');
+            const clearBtn   = document.getElementById('clearBtn');
+            let   visible    = 0;
+
+            clearBtn.style.display = query ? 'flex' : 'none';
+
+            rows.forEach(row => {
+                const text       = row.textContent.toLowerCase();
+                const matchQuery  = !query  || text.includes(query);
+                const matchEntity = !entity || text.includes(entity);
+                const matchAction = !action || text.includes(action);
+                const show        = matchQuery && matchEntity && matchAction;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            filterTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value  = '';
+            document.getElementById('entityFilter').value = '';
+            document.getElementById('actionFilter').value = '';
+            filterTable();
+        }
+    </script>
+}

@@ -1,0 +1,21 @@
+<svg width="400" height="80" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Badge circle outer -->
+  <circle cx="40" cy="40" r="36" fill="#0f3460"/>
+  <!-- Badge circle inner -->
+  <circle cx="40" cy="40" r="28" fill="#AACDDC"/>
+  <!-- Shield inside badge -->
+  <path d="M40,22 L53,31 L53,48 Q53,58 40,62 Q27,58 27,48 L27,31 Z" fill="#0f3460"/>
+  <!-- I letter on shield -->
+  <text x="40" y="57" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#AACDDC" text-anchor="middle">I</text>
+
+  <!-- Divider line -->
+  <line x1="84" y1="14" x2="84" y2="66" stroke="#ccd9e0" stroke-width="1"/>
+
+  <!-- IPMS text -->
+  <text x="108" y="36" font-family="'Segoe UI', Arial, sans-serif" font-size="30" font-weight="500" fill="#1a2e4a" dominant-baseline="auto">IPMS</text>
+
+  <!-- Tagline -->
+  <text x="108" y="56" font-family="'Segoe UI', Arial, sans-serif" font-size="11" fill="#6b7f91" dominant-baseline="auto">Insurance Policy Management System</text>
+
+</svg>

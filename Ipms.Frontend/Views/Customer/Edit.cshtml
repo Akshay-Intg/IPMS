@@ -1,0 +1,117 @@
+﻿@model Ipms.Frontend.Models.EditViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+<link rel="stylesheet" href="~/css/edit.css" />
+
+<div class="edit-wrapper">
+    <div class="edit-card">
+
+        <div class="edit-banner">
+            <h6>Insurance Portal</h6>
+            <h2><i class="bi bi-pencil-square me-2"></i>Edit Profile</h2>
+        </div>
+
+        <div class="edit-body">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger rounded-3 mb-3">@TempData["Error"]</div>
+            }
+
+            <form asp-controller="Customer" asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                <div class="section-label">Personal Information</div>
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-12">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" maxlength="30" asp-for="Email"  />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control" maxlength="15" asp-for="FirstName" />
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control" maxlength="20" asp-for="LastName" />
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" asp-for="DateOfBirth"
+                               value="@Model.DateOfBirth.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Gender</label>
+                        <select class="form-select" asp-for="Gender">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Phone No</label>
+                        <input type="text" class="form-control" maxlength="11" asp-for="PhoneNo" />
+                        <span asp-validation-for="PhoneNo" class="text-danger small"></span>
+                    </div>
+
+                </div>
+
+                <div class="section-label">Address</div>
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-12">
+                        <label class="form-label">Address Line 1</label>
+                        <input type="text" class="form-control" maxlength="50" asp-for="AddressLine1" placeholder="Street, Apartment, etc." />
+                        <span asp-validation-for="AddressLine1" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-control" maxlength="20" asp-for="City" />
+                        <span asp-validation-for="City" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">State</label>
+                        <input type="text" class="form-control" maxlength="20" asp-for="State" />
+                        <span asp-validation-for="State" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Zip Code</label>
+                        <input type="text" class="form-control" maxlength="6" asp-for="ZipCode" id="zipcodeInput" />
+                        <span asp-validation-for="ZipCode" class="text-danger small"></span>
+                    </div>
+
+                </div>
+
+                <div class="d-flex gap-2 pt-2">
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-check-circle"></i> Save Changes
+                    </button>
+                    <a asp-controller="Customer" asp-action="Profile" class="btn-cancel">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <partial name="_ZipcodeScript" />
+}

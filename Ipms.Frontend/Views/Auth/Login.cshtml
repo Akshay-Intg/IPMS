@@ -1,0 +1,162 @@
+﻿@model Ipms.Frontend.Models.LoginModel
+<link rel="stylesheet" href="~/css/Login.css" />
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>login</title>
+    </head>
+    <body>
+        <div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="login-header">
+            <h1>IPMS</h1>
+            <p>Insurance Policy Management System</p>
+        </div>
+
+        <h2 class="login-title">Welcome Back</h2>
+        <p class="login-sub">Please login to your account</p>
+
+        @* TempData alerts (server-side) *@
+        @if (TempData["Error"] != null)
+        {
+                <div class="alert-error alert-box">⚠️ @TempData["Error"]</div>
+        }
+        @if (TempData["Success"] != null)
+        {
+                <div class="alert-success alert-box">✔ @TempData["Success"]</div>
+        }
+
+        @* JS alert box (client-side ajax response) *@
+        <div id="alertBox" class="alert d-none mx-0 mb-3" role="alert"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input class="form-input" type="email" id="email" asp-for="Email" placeholder="Enter your email" maxlength="50" required />
+                <span class="field-error" id="emailError"></span>
+            </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div style="position: relative;">
+                        <input class="form-input" type="password" id="password" asp-for="Password" placeholder="Enter your password" maxlength="20" 
+                               style="padding-right: 2.5rem;" required/>
+                        <button type="button" onclick="togglePassword()"
+                          style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#999; padding:0;">
+                            <i class="bi bi-eye" id="eyeIcon" style="font-size:1.1rem;"></i>
+                        </button>
+                    </div>
+                    <span class="field-error" id="passwordError"></span>
+                </div>
+            <p>
+               <a href="/Auth/ForgotPassword" style="margin-left: 190px; text-decoration: none; 
+                    color: #2c3e50;font-weight: 600;">Forgot password ?</a>
+            </p>
+
+            <button type="submit" class="login-btn" id="loginButton">
+                <span id="btnText">Login</span>
+                <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+            </button>
+        </form>
+
+        <p class="register-link">
+            Don't have an account? <a href="/Auth/Register">Register here</a>
+        </p>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Clear previous errors
+            document.getElementById('emailError').textContent    = '';
+            document.getElementById('passwordError').textContent = '';
+            setAlert('', '');
+
+            // Client-side validation
+            let valid = true;
+            if (!email) {
+                document.getElementById('emailError').textContent = 'Email is required.';
+                valid = false;
+            }
+            if (!password) {
+                document.getElementById('passwordError').textContent = 'Password is required.';
+                valid = false;
+            }
+            if (!valid) return;
+
+            setLoading(true);
+
+            try {
+                const response = await fetch('/Auth/Login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/Customer/Dashboard';
+                    }, 800);
+                } else {
+                    setAlert(data.message || 'Invalid email or password.', 'danger');
+                    setLoading(false);
+                }
+
+            } catch (error) {
+                console.log(error);
+                setAlert('Something went wrong. Please try again.', 'danger');
+                setLoading(false);
+            }
+        });
+
+            function togglePassword() {
+                            const input    = document.getElementById('password');
+                            const icon     = document.getElementById('eyeIcon');
+                            const visible  = input.type === 'text';
+                            input.type     = visible ? 'password' : 'text';
+                            icon.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+                        }
+
+        function setLoading(isLoading) {
+            const btn     = document.getElementById('loginButton');
+            const text    = document.getElementById('btnText');
+            const spinner = document.getElementById('btnSpinner');
+            btn.disabled  = isLoading;
+            text.textContent = isLoading ? 'Logging in...' : 'Login';
+            spinner.classList.toggle('d-none', !isLoading);
+        }
+
+        function setAlert(message, type) {
+            const box = document.getElementById('alertBox');
+            if (!message) {
+                box.classList.add('d-none');
+                return;
+            }
+            box.className   = `alert alert-${type} mx-0 mb-3`;
+            box.textContent = message;
+        }
+                setTimeout(function () {
+                document.querySelectorAll('.alert-box').forEach(function (el) {
+                    el.style.transition = "opacity 0.5s ease";
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 500); 
+                });
+            }, 3000);
+      
+        </script>
+   }
+    </body>    
+</html>

@@ -1,0 +1,657 @@
+﻿@model Ipms.Frontend.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<link rel="stylesheet" href="~/css/register.css" />
+
+<!-- ── OTP Verification Overlay ── -->
+<div id="otpOverlay" style="display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.55);
+     z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:16px; padding:36px 32px;
+         text-align:center; max-width:420px; width:90%;
+         box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+
+        <div style="font-size:48px; margin-bottom:10px;">📧</div>
+        <h4 style="color:#2c3e50; font-weight:700; margin-bottom:6px;">
+            Verify Your Email
+        </h4>
+        <p id="otpEmailLabel"
+           style="color:#666; font-size:13px; margin-bottom:20px; line-height:1.5;">
+        </p>
+
+        <!-- 6 OTP boxes -->
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:16px;">
+            <input type="text" maxlength="1" id="r_otp1"
+                   oninput="otpMove(this, null, 'r_otp2')"
+                   onkeydown="otpBack(event, this, null, 'r_otp2')"
+                   class="otp-reg-box" />
+            <input type="text" maxlength="1" id="r_otp2"
+                   oninput="otpMove(this, 'r_otp1', 'r_otp3')"
+                   onkeydown="otpBack(event, this, 'r_otp1', 'r_otp3')"
+                   class="otp-reg-box" />
+            <input type="text" maxlength="1" id="r_otp3"
+                   oninput="otpMove(this, 'r_otp2', 'r_otp4')"
+                   onkeydown="otpBack(event, this, 'r_otp2', 'r_otp4')"
+                   class="otp-reg-box" />
+            <input type="text" maxlength="1" id="r_otp4"
+                   oninput="otpMove(this, 'r_otp3', 'r_otp5')"
+                   onkeydown="otpBack(event, this, 'r_otp3', 'r_otp5')"
+                   class="otp-reg-box" />
+            <input type="text" maxlength="1" id="r_otp5"
+                   oninput="otpMove(this, 'r_otp4', 'r_otp6')"
+                   onkeydown="otpBack(event, this, 'r_otp4', 'r_otp6')"
+                   class="otp-reg-box" />
+            <input type="text" maxlength="1" id="r_otp6"
+                   oninput="otpMove(this, 'r_otp5', null)"
+                   onkeydown="otpBack(event, this, 'r_otp5', null)"
+                   class="otp-reg-box" />
+        </div>
+
+        <div id="otpPopupError"
+             style="color:#e94560; font-size:13px; margin-bottom:12px; display:none;">
+        </div>
+        <div id="otpPopupSuccess"
+             style="color:#155724; font-size:13px; margin-bottom:12px; display:none;">
+        </div>
+
+        <button onclick="verifyRegistrationOtp()" id="verifyRegBtn"
+                style="width:100%; padding:12px; background:linear-gradient(135deg,#1a1a2e,#2c3e50);
+                       color:#fff; border:none; border-radius:8px; font-size:14px;
+                       font-weight:600; cursor:pointer; margin-bottom:14px;
+                       transition:opacity 0.2s;">
+            <span id="verifyRegBtnText">Verify &amp; Activate Account</span>
+            <span id="verifyRegSpinner"
+                  class="spinner-border spinner-border-sm d-none ms-2"></span>
+        </button>
+
+        <p style="font-size:12px; color:#aaa; margin:0;">
+            Didn't receive it?
+            <a onclick="resendRegOtp()"
+               style="color:#2c3e50; font-weight:600; cursor:pointer;
+                      text-decoration:none;">Resend OTP</a>
+            &nbsp;|&nbsp;
+            <a onclick="closeOtpOverlay()"
+               style="color:#999; cursor:pointer; text-decoration:none;">
+                Go back
+            </a>
+        </p>
+        <p style="font-size:11px; color:#ccc; margin-top:8px;">
+            ⏱ OTP expires in 10 minutes
+        </p>
+    </div>
+</div>
+
+<style>
+    .otp-reg-box {
+        width: 46px;
+        height: 52px;
+        text-align: center;
+        font-size: 1.3rem;
+        font-weight: 700;
+        border: 1.5px solid #ccd9e0;
+        border-radius: 8px;
+        outline: none;
+        background: #f5fafd;
+        color: #2c3e50;
+        font-family: 'Poppins', sans-serif;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .otp-reg-box:focus {
+        border-color: #AACDDC;
+        box-shadow: 0 0 0 3px rgba(170,205,220,0.3);
+        background: #fff;
+    }
+</style>
+
+<div class="register-wrapper">
+    <div class="register-card">
+
+        <div class="register-header">
+            <h1>IPMS</h1>
+            <p>Insurance Policy Management System</p>
+        </div>
+
+        <h2 class="register-title">Create Account</h2>
+        <p class="register-sub">Fill in the details below to register</p>
+
+        <!-- Alert boxes -->
+        <div id="regErrorBox"
+             style="display:none; color:#b00020; background:#fdd9d9;
+                    padding:10px 14px; border-radius:6px; margin-bottom:14px;
+                    font-size:13px; border-left:3px solid #b00020;">
+        </div>
+        <div id="regSuccessBox"
+             style="display:none; color:#155724; background:#d4f5e4;
+                    padding:10px 14px; border-radius:6px; margin-bottom:14px;
+                    font-size:13px; border-left:3px solid #28a745;">
+        </div>
+
+        <form id="registerForm" novalidate onsubmit="return false;">
+
+            @Html.AntiForgeryToken()
+
+            <!-- Email + Phone -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input asp-for="Email" class="form-input"
+                           placeholder="abc@gmail.com" maxlength="50" required />
+                    <span class="field-error" id="emailError"></span>
+                </div>
+                <div class="form-group">
+                    <label>Phone No</label>
+                    <input asp-for="PhoneNo" class="form-input"
+                           placeholder="9876543210" maxlength="10"
+                           inputmode="numeric"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                           required />
+                    <span class="field-error" id="phoneError"></span>
+                </div>
+            </div>
+
+            <!-- Password + Confirm Password -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Password</label>
+                    <div style="position:relative;">
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-input"
+                               placeholder="••••••••"
+                               data-val="false"
+                               id="passwordInput"
+                               maxlength="15"
+                               autocomplete="new-password"
+                               required
+                               style="padding-right:2.5rem;" />
+
+                        <button type="button"
+                                onclick="togglePassword()"
+                                aria-label="Show password"
+                                title="Show/Hide Password"
+                                style="position:absolute; right:12px; top:50%;
+                       transform:translateY(-50%);
+                       background:none;
+                       border:none;
+                       cursor:pointer;
+                       color:#999;
+                       padding:0;">
+
+                            <i class="bi bi-eye"
+                               id="eyeIcon"
+                               style="font-size:1.1rem;"></i>
+                        </button>
+                    </div>
+
+                    <span class="field-error" id="passError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <div style="position:relative;">
+                        <input asp-for="ConfirmPassword"
+                               type="password"
+                               class="form-input"
+                               placeholder="••••••••"
+                               data-val="false"
+                               id="confirmPasswordInput"
+                               maxlength="15"
+                               autocomplete="new-password"
+                               required
+                               style="padding-right:2.5rem;" />
+
+                        <button type="button"
+                                onclick="toggleConfirmPassword()"
+                                aria-label="Show confirm password"
+                                title="Show/Hide Confirm Password"
+                                style="position:absolute; right:12px; top:50%;
+                       transform:translateY(-50%);
+                       background:none;
+                       border:none;
+                       cursor:pointer;
+                       color:#999;
+                       padding:0;">
+
+                            <i class="bi bi-eye"
+                               id="eyeIconConfirm"
+                               style="font-size:1.1rem;"></i>
+                        </button>
+                    </div>
+
+                    <span class="field-error" id="confirmPassError"></span>
+                </div>
+            </div>
+
+            <!-- First Name + Last Name -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input asp-for="FirstName" class="form-input"
+                           maxlength="15" placeholder="Hello"
+                           oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                           required />
+                    <span class="field-error" id="firstNameError"></span>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input asp-for="LastName" class="form-input"
+                           maxlength="20" placeholder="World"
+                           oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                           required />
+                    <span class="field-error" id="lastNameError"></span>
+                </div>
+            </div>
+
+            <!-- DOB + Gender -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input asp-for="DateOfBirth" type="date" class="form-input"
+                           id="dobInput" min="1900-01-01" max="2099-12-31"
+                           data-val="false" required />
+                    <span class="field-error" id="dobError"></span>
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select asp-for="Gender" class="form-input" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span class="field-error" id="genderError"></span>
+                </div>
+            </div>
+
+            <!-- Address + City -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Address Line 1</label>
+                    <input asp-for="AddressLine1" class="form-input"
+                           placeholder="Street, Apartment, etc."
+                           maxlength="100" required />
+                    <span class="field-error" id="addressError"></span>
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input asp-for="City" class="form-input"
+                           placeholder="Ghaziabad" maxlength="20"
+                           oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                           required />
+                    <span class="field-error" id="cityError"></span>
+                </div>
+            </div>
+
+            <!-- State + Zip Code -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>State</label>
+                    <input asp-for="State" class="form-input"
+                           placeholder="Uttar Pradesh" maxlength="50"
+                           oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')"
+                           required />
+                    <span class="field-error" id="stateError"></span>
+                </div>
+                <div class="form-group">
+                    <label>Zip Code</label>
+                    <input asp-for="ZipCode" class="form-input"
+                           placeholder="400001" maxlength="6"
+                           inputmode="numeric"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                           id="zipcodeInput" required />
+                    <span class="field-error" id="zipError"></span>
+                </div>
+            </div>
+
+            <button type="button" class="register-btn"
+                    id="registerButton" onclick="validateAndSubmit()">
+                <span id="registerBtnText">Register Account</span>
+                <span id="registerSpinner"
+                      class="spinner-border spinner-border-sm d-none ms-2"></span>
+            </button>
+
+            <p class="login-link">
+                Already have an account?
+                <a href="@Url.Action("Login", "Auth")">Login here</a>
+            </p>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ZipcodeScript" />
+    <script>
+
+        // ── State ─────────────────────────────────────────────────────
+        let pendingEmail = '';
+
+        // ── Password Toggle ───────────────────────────────────────────
+        function togglePassword() {
+            const input   = document.getElementById('passwordInput');
+            const icon    = document.getElementById('eyeIcon');
+            const visible = input.type === 'text';
+            input.type    = visible ? 'password' : 'text';
+            icon.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+        }
+
+        function toggleConfirmPassword() {
+            const input   = document.getElementById('confirmPasswordInput');
+            const icon    = document.getElementById('eyeIconConfirm');
+            const visible = input.type === 'text';
+            input.type    = visible ? 'password' : 'text';
+            icon.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+        }
+
+        // ── DOB real-time validation ──────────────────────────────────
+        document.querySelector('input[name="DateOfBirth"]').addEventListener('change', function () {
+            const dob   = new Date(this.value);
+            const today = new Date();
+            const age   = today.getFullYear() - dob.getFullYear();
+            const error = document.getElementById('dobError');
+            if      (!this.value)    error.textContent = 'Date of birth is required.';
+            else if (dob > today)    error.textContent = 'Date of birth cannot be in the future.';
+            else if (age < 18)       error.textContent = 'You must be at least 18 years old.';
+            else if (age > 100)      error.textContent = 'Please enter a valid date of birth.';
+            else                     error.textContent = '';
+        });
+
+        document.querySelector('input[name="DateOfBirth"]').addEventListener('input', function () {
+            const parts = this.value.split('-');
+            if (parts[0] && parts[0].length > 4) {
+                parts[0] = parts[0].substring(0, 4);
+                this.value = parts.join('-');
+            }
+        });
+
+        // ── Validation ────────────────────────────────────────────────
+        function validateAndSubmit() {
+            let isValid = true;
+
+            function showError(id, msg) {
+                document.getElementById(id).textContent = msg;
+                isValid = false;
+            }
+            function clearError(id) {
+                document.getElementById(id).textContent = '';
+            }
+
+            // Email
+            const email = document.querySelector('[name="Email"]').value.trim();
+            if (!email)
+                showError('emailError', 'Email is required.');
+            else if (!/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email))
+                showError('emailError', 'Enter a valid email address.');
+            else
+                clearError('emailError');
+
+            // Phone
+            const phone = document.querySelector('[name="PhoneNo"]').value.trim();
+            if (!phone)
+                showError('phoneError', 'Phone number is required.');
+            else if (!/^\d{10}$/.test(phone))
+                showError('phoneError', 'Phone must be exactly 10 digits.');
+            else
+                clearError('phoneError');
+
+            // Password
+            const password = document.getElementById('passwordInput').value;
+            if (!password)
+                showError('passError', 'Password is required.');
+            else if (password.length < 6)
+                showError('passError', 'Password must be at least 6 characters.');
+            else
+                clearError('passError');
+
+            // Confirm Password
+            const confirmPass = document.getElementById('confirmPasswordInput').value;
+            if (!confirmPass)
+                showError('confirmPassError', 'Please confirm your password.');
+            else if (confirmPass !== password)
+                showError('confirmPassError', 'Passwords do not match.');
+            else
+                clearError('confirmPassError');
+
+            // First Name
+            const firstName = document.querySelector('[name="FirstName"]').value.trim();
+            if (!firstName) showError('firstNameError', 'First name is required.');
+            else            clearError('firstNameError');
+
+            // Last Name
+            const lastName = document.querySelector('[name="LastName"]').value.trim();
+            if (!lastName) showError('lastNameError', 'Last name is required.');
+            else           clearError('lastNameError');
+
+            // DOB
+            const dob = document.querySelector('[name="DateOfBirth"]').value;
+            if (!dob) {
+                showError('dobError', 'Date of birth is required.');
+            } else {
+                const dobDate = new Date(dob);
+                const today   = new Date();
+                const age     = today.getFullYear() - dobDate.getFullYear();
+                if (dobDate > today)  showError('dobError', 'Date cannot be in the future.');
+                else if (age < 18)   showError('dobError', 'You must be at least 18 years old.');
+                else if (age > 100)  showError('dobError', 'Enter a valid date of birth.');
+                else                 clearError('dobError');
+            }
+
+            // Gender
+            const gender = document.querySelector('[name="Gender"]').value;
+            if (!gender) showError('genderError', 'Please select gender.');
+            else         clearError('genderError');
+
+            // Address
+            const address = document.querySelector('[name="AddressLine1"]').value.trim();
+            if (!address) showError('addressError', 'Address is required.');
+            else          clearError('addressError');
+
+            // City
+            const city = document.querySelector('[name="City"]').value.trim();
+            if (!city) showError('cityError', 'City is required.');
+            else       clearError('cityError');
+
+            // State
+            const state = document.querySelector('[name="State"]').value.trim();
+            if (!state) showError('stateError', 'State is required.');
+            else        clearError('stateError');
+
+            // Zip Code
+            const zip = document.querySelector('[name="ZipCode"]').value.trim();
+            if (!zip)
+                showError('zipError', 'Zip code is required.');
+            else if (!/^\d{6}$/.test(zip))
+                showError('zipError', 'Zip code must be 6 digits.');
+            else
+                clearError('zipError');
+
+            if (!isValid) return;
+
+            // ── All valid — submit via AJAX ──
+            submitRegistration();
+        }
+
+        // ── AJAX Registration ─────────────────────────────────────────
+        async function submitRegistration() {
+            const btn = document.getElementById('registerButton');
+            btn.disabled = true;
+            document.getElementById('registerBtnText').textContent = 'Sending OTP...';
+            document.getElementById('registerSpinner').classList.remove('d-none');
+            hideRegAlerts();
+
+            const formData = {
+                email:           document.querySelector('[name="Email"]').value.trim(),
+                password:        document.getElementById('passwordInput').value,
+                confirmPassword: document.getElementById('confirmPasswordInput').value,
+                firstName:       document.querySelector('[name="FirstName"]').value.trim(),
+                lastName:        document.querySelector('[name="LastName"]').value.trim(),
+                phoneNo:         document.querySelector('[name="PhoneNo"]').value.trim(),
+                dateOfBirth:     document.querySelector('[name="DateOfBirth"]').value,
+                gender:          document.querySelector('[name="Gender"]').value,
+                addressLine1:    document.querySelector('[name="AddressLine1"]').value.trim(),
+                city:            document.querySelector('[name="City"]').value.trim(),
+                state:           document.querySelector('[name="State"]').value.trim(),
+                zipCode:         document.querySelector('[name="ZipCode"]').value.trim(),
+            };
+
+            try {
+                const res  = await fetch('/Auth/Register', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(formData)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    pendingEmail = data.email;
+                    showOtpStep(data.email);
+                } else {
+                    showRegError(data.message || 'Registration failed. Please try again.');
+                }
+            } catch (err) {
+                showRegError('Network error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                document.getElementById('registerBtnText').textContent = 'Register Account';
+                document.getElementById('registerSpinner').classList.add('d-none');
+            }
+        }
+
+        // ── OTP Overlay ───────────────────────────────────────────────
+        function showOtpStep(email) {
+            pendingEmail = email;
+            document.getElementById('otpEmailLabel').textContent =
+                'We sent a 6-digit OTP to ' + email + '. Enter it below to activate your account.';
+            document.getElementById('otpOverlay').style.display = 'flex';
+            document.getElementById('otpPopupError').style.display   = 'none';
+            document.getElementById('otpPopupSuccess').style.display = 'none';
+            clearRegOtp();
+            setTimeout(() => document.getElementById('r_otp1').focus(), 150);
+        }
+
+        function closeOtpOverlay() {
+            document.getElementById('otpOverlay').style.display = 'none';
+        }
+
+        // ── OTP box navigation ────────────────────────────────────────
+        function otpMove(current, prevId, nextId) {
+            current.value = current.value.replace(/[^0-9]/g, '');
+            if (current.value && nextId)
+                document.getElementById(nextId).focus();
+        }
+
+        function otpBack(e, current, prevId) {
+            if (e.key === 'Backspace' && !current.value && prevId)
+                document.getElementById(prevId).focus();
+        }
+
+        function getRegOtp() {
+            return ['r_otp1','r_otp2','r_otp3','r_otp4','r_otp5','r_otp6']
+                .map(id => document.getElementById(id).value).join('');
+        }
+
+        function clearRegOtp() {
+            ['r_otp1','r_otp2','r_otp3','r_otp4','r_otp5','r_otp6']
+                .forEach(id => document.getElementById(id).value = '');
+        }
+
+        // ── Verify OTP ────────────────────────────────────────────────
+        async function verifyRegistrationOtp() {
+            const otp = getRegOtp();
+            const errEl = document.getElementById('otpPopupError');
+
+            if (otp.length < 6) {
+                errEl.textContent    = 'Please enter all 6 digits.';
+                errEl.style.display  = 'block';
+                return;
+            }
+
+            const btn = document.getElementById('verifyRegBtn');
+            btn.disabled = true;
+            document.getElementById('verifyRegBtnText').textContent = 'Verifying...';
+            document.getElementById('verifyRegSpinner').classList.remove('d-none');
+            errEl.style.display = 'none';
+
+            try {
+                const res  = await fetch('/Auth/VerifyRegistration', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email: pendingEmail, otp })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    const succEl = document.getElementById('otpPopupSuccess');
+                    succEl.textContent   = '✔ Account verified! Redirecting to login...';
+                    succEl.style.display = 'block';
+                    setTimeout(() => window.location.href = '/Auth/Login', 2000);
+                } else {
+                    errEl.textContent   = data.message || 'Invalid OTP. Please try again.';
+                    errEl.style.display = 'block';
+                    clearRegOtp();
+                    document.getElementById('r_otp1').focus();
+                    btn.disabled = false;
+                    document.getElementById('verifyRegBtnText').textContent = 'Verify & Activate Account';
+                    document.getElementById('verifyRegSpinner').classList.add('d-none');
+                }
+            } catch (err) {
+                errEl.textContent   = 'Network error. Please try again.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                document.getElementById('verifyRegBtnText').textContent = 'Verify & Activate Account';
+                document.getElementById('verifyRegSpinner').classList.add('d-none');
+            }
+        }
+
+        // ── Resend OTP ────────────────────────────────────────────────
+        async function resendRegOtp() {
+            clearRegOtp();
+            document.getElementById('otpPopupError').style.display   = 'none';
+            document.getElementById('otpPopupSuccess').style.display = 'none';
+
+            try {
+                const res = await fetch('/Auth/ResendRegistrationOtp', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email: pendingEmail })
+                });
+
+                const succEl = document.getElementById('otpPopupSuccess');
+                if (res.ok) {
+                    succEl.textContent   = '✔ New OTP sent to ' + pendingEmail;
+                    succEl.style.display = 'block';
+                } else {
+                    const data = await res.json();
+                    document.getElementById('otpPopupError').textContent   = data.message || 'Failed to resend OTP.';
+                    document.getElementById('otpPopupError').style.display = 'block';
+                }
+            } catch {
+                document.getElementById('otpPopupError').textContent   = 'Network error.';
+                document.getElementById('otpPopupError').style.display = 'block';
+            }
+        }
+
+        // ── Alert Helpers ─────────────────────────────────────────────
+        function showRegError(msg) {
+            const box = document.getElementById('regErrorBox');
+            box.textContent  = msg;
+            box.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showRegSuccess(msg) {
+            const box = document.getElementById('regSuccessBox');
+            box.textContent  = msg;
+            box.style.display = 'block';
+        }
+
+        function hideRegAlerts() {
+            document.getElementById('regErrorBox').style.display   = 'none';
+            document.getElementById('regSuccessBox').style.display = 'none';
+        }
+
+    </script>
+}

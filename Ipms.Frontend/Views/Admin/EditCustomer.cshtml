@@ -1,0 +1,259 @@
+﻿@model Ipms.Frontend.Models.AdminEditViewModel
+@{
+    ViewData["Title"] = "Edit Customer";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+<link rel="stylesheet" href="~/css/editcustomer.css" />
+
+<div class="profile-wrapper">
+    <div class="profile-card">
+
+        <div class="profile-banner">
+            <h6>Admin Panel</h6>
+            <h2><i class="bi bi-person-gear me-2"></i>Edit Customer</h2>
+            <div class="avatar-wrap">
+                <div class="avatar">
+                    @(Model.FirstName?.Substring(0, 1).ToUpper() ?? "C")@(Model.LastName?.Substring(0, 1).ToUpper() ?? "")
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-body">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger rounded-3 mb-3">
+                    <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+                </div>
+            }
+
+            <div class="profile-name">@Model.FirstName @Model.LastName</div>
+            <div class="profile-id">Customer ID #@Model.CustomerId</div>
+
+            <form asp-controller="Admin" asp-action="EditCustomer"
+                  asp-route-id="@Model.CustomerId" method="post" id="editForm">
+
+                <input type="hidden" asp-for="CustomerId" />
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                <div class="section-title">Personal Information</div>
+                <div class="edit-grid">
+
+                    <div class="full">
+                        <label class="form-label-uw">Email</label>
+                        <input type="email" class="form-control-uw" maxlength="50" asp-for="Email" />
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">First Name</label>
+                        <input type="text" class="form-control-uw" maxlength="15" asp-for="FirstName" />
+                        <span asp-validation-for="FirstName" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">Last Name</label>
+                        <input type="text" class="form-control-uw" maxlength="20" asp-for="LastName" />
+                        <span asp-validation-for="LastName" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">Date of Birth</label>
+                        <input type="date" class="form-control-uw" asp-for="DateOfBirth"
+                               value="@Model.DateOfBirth.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">Gender</label>
+                        <select class="form-select-uw" asp-for="Gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">Phone No</label>
+                        <input type="text" class="form-control-uw" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" asp-for="PhoneNo" />
+                        <span asp-validation-for="PhoneNo" class="field-error"></span>
+                    </div>
+
+                </div>
+
+                <div class="section-title">Address</div>
+                <div class="edit-grid">
+
+                    <div class="full">
+                        <label class="form-label-uw">Address Line 1</label>
+                        <input type="text" class="form-control-uw" maxlength="20" asp-for="AddressLine1" />
+                        <span asp-validation-for="AddressLine1" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">City</label>
+                        <input type="text" class="form-control-uw" maxlength="20" asp-for="City" />
+                        <span asp-validation-for="City" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">State</label>
+                        <input type="text" class="form-control-uw" maxlength="30" asp-for="State" />
+                        <span asp-validation-for="State" class="field-error"></span>
+                    </div>
+
+                    <div>
+                        <label class="form-label-uw">Zip Code</label>
+                        <input type="text" class="form-control-uw" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')" asp-for="ZipCode" id="zipcodeInput" />
+                        <span asp-validation-for="ZipCode" class="field-error"></span>
+                    </div>
+
+                </div>
+
+                <div class="section-title" style="color:#b8860b; border-bottom-color:#ffe082;">
+                    ⚠️ Admin Controls
+                </div>
+                <div class="admin-section">
+                    <div class="edit-grid">
+                        <div>
+                            <label class="form-label-uw">Role</label>
+                            <select class="form-select-uw" asp-for="RoleId">
+                                <option value="1">Admin</option>
+                                <option value="2">Agent</option>
+                                <option value="3">Customer</option>
+                                <option value="4">Underwriter</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center; padding-top:1.5rem;">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input"
+                                       asp-for="IsActive" role="switch" />
+                                <label class="form-check-label ms-2"
+                                       style="font-size:0.85rem; color:#555;">
+                                    Active
+                                    <small class="text-muted">(uncheck to deactivate)</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-actions mt-4">
+                    <button type="submit" class="btn-edit">
+                        <i class="bi bi-check-circle"></i> Update Record
+                    </button>
+                    <button type="button" class="btn-password" id="deleteBtn"
+                            data-id="@Model.CustomerId"
+                            data-name="@Model.FirstName @Model.LastName">
+                        <i class="bi bi-trash"></i> Delete Record
+                    </button>
+                    <a asp-controller="Admin" asp-action="GetAll" class="btn-edit"
+                       style="background: #6c757d;">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="deletePopup" style="display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.5);
+     z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:16px; padding:36px;
+         text-align:center; max-width:400px; width:90%;
+         box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+        <div style="font-size:48px; margin-bottom:12px;">⚠️</div>
+        <h4 style="color:#1a1a2e; font-weight:700; margin-bottom:8px;">Delete Customer?</h4>
+        <p id="deleteMsg" style="color:#666; font-size:14px; margin-bottom:24px;"></p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button type="button" onclick="closeDeletePopup()"
+                    style="background:#f0f0f0; border:none; padding:10px 24px;
+                           border-radius:8px; font-size:14px; font-weight:600;
+                           cursor:pointer; color:#555;">
+                Cancel
+            </button>
+            <button type="button" id="confirmDeleteBtn"
+                    style="background: linear-gradient(135deg,#b00020,#e94560);
+                           color:#fff; border:none; padding:10px 24px;
+                           border-radius:8px; font-size:14px;
+                           font-weight:600; cursor:pointer;">
+                Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <partial name="_ZipcodeScript" />
+    <script>
+        let selectedCustomerId = null;
+
+        $(document).ready(function () {
+
+            $('#deleteBtn').click(function () {
+                selectedCustomerId = $(this).data('id');
+                const customerName = $(this).data('name');
+                $('#deleteMsg').text('Are you sure you want to delete "' + customerName + '"? This action can be undone by Admin.');
+                $('#deletePopup').css('display', 'flex');
+            });
+
+            $('#confirmDeleteBtn').click(async function () {
+                const btn = $(this);
+                btn.text('Deleting...').prop('disabled', true);
+
+                try {
+                    const token = $('input[name="__RequestVerificationToken"]').val();
+
+                    const response = await fetch('/Admin/SoftDelete/' + selectedCustomerId, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok || response.redirected) {
+                        $('#deletePopup').css('display', 'none');
+                        showToast('✅ Customer deleted successfully.', 'success');
+                        setTimeout(() => window.location.href = '/Admin/GetAll', 1500);
+                    } else {
+                        showToast('❌ Failed to delete. Please try again.', 'danger');
+                        btn.text('Yes, Delete').prop('disabled', false);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('❌ Something went wrong.', 'danger');
+                    btn.text('Yes, Delete').prop('disabled', false);
+                }
+            });
+
+            window.closeDeletePopup = function () {
+                $('#deletePopup').css('display', 'none');
+            };
+
+            $('#deletePopup').click(function (e) {
+                if (e.target === this) $(this).css('display', 'none');
+            });
+        });
+
+        function showToast(msg, type) {
+            $('.toast-msg').remove();
+            const toast = $('<div class="toast-msg">')
+                .addClass('alert alert-' + type)
+                .css({
+                    position: 'fixed', top: '20px', right: '20px',
+                    zIndex: '99999', padding: '14px 20px',
+                    borderRadius: '10px', fontSize: '14px',
+                    fontWeight: '500', boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                })
+                .html(msg);
+            $('body').append(toast);
+            setTimeout(() => toast.fadeOut(400, () => toast.remove()), 3000);
+        }
+        
+    </script>
+}

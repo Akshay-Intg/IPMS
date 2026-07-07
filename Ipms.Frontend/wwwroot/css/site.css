@@ -1,0 +1,140 @@
+/* ── Global Reset ── */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+}
+body {
+    background-color: #AACDDC;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container,
+.container-fluid,
+.container > main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+    /* ── Reset for full-width sections ── */
+    .container > main {
+        padding: 0 !important;
+    }
+
+.hero {
+    padding-top: 100px;
+    padding-left: 10px;
+    display: flex;
+    background: white;
+}
+
+    .hero-content h1 {
+        font-size: 42px;
+        color: #1c2b4a;
+        margin-bottom: 20px;
+    }
+
+    .hero-content p {
+        color: black;
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+
+    .hero-content button {
+        padding: 12px 25px;
+        border: none;
+        background-color: #2563eb;
+        color: white;
+        font-size: 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .hero-content button:hover {
+            background-color: #1d4ed8;
+        }
+
+.hero-image img {
+    width: 600px;
+    margin-left: 150px;
+    border-radius: 10px;
+}
+
+
+@media (min-width: 992px) {
+    #mainNavbar {
+        position: relative;
+    }
+
+
+        #mainNavbar .navbar-nav:first-child {
+            position: absolute;
+            left: 40%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+}
+
+/* Navbar base */
+.navbar .nav-link {
+    position: relative;
+    color: #d1d5db !important;
+    font-weight: 500;
+    margin-right: 12px;
+    transition: 0.3s ease;
+}
+
+    /* Hover effect */
+    .navbar .nav-link:hover {
+        color: #ffffff !important;
+    }
+
+    /* Underline base */
+    .navbar .nav-link::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -6px;
+        width: 0%;
+        height: 2px;
+        background-color: #ffffff;
+        transition: width 0.3s ease;
+    }
+
+    /* Hover underline */
+    .navbar .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Active link */
+    .navbar .nav-link.active {
+        color: #ffffff !important;
+    }
+
+        .navbar .nav-link.active::after {
+            width: 100%;
+        }
+
+/* Center navbar */
+.center-nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Fix for mobile */
+@media (max-width: 991px) {
+    .center-nav {
+        position: static;
+        transform: none;
+        
+    }
+}

@@ -1,0 +1,65 @@
+﻿@{
+    var apiKey = ViewBag.ZipcodeApiKey?.ToString() ?? "";
+}
+<script>
+    (function() {
+        const API_KEY = '@apiKey';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('zipcodeInput');
+            if (!input) return;
+
+            input.addEventListener('blur', async function () {
+                const zip = this.value.trim();
+                if (zip.length < 4) return;
+                await lookupZip(zip);
+            });
+        });
+
+        async function lookupZip(zip) {
+            showStatus('loading');
+            try {
+                const res  = await fetch(
+                    `https://app.zipcodebase.com/api/v1/search?apikey=${API_KEY}&codes=${zip}&country=IN`
+                );
+                const data = await res.json();
+                const info = data.results?.[zip]?.[0];
+
+                if (info) {
+                    fill('City',    info.city);
+                    fill('State',   info.state);
+                    showStatus('success');
+                } else {
+                    showStatus('error', '⚠️ Zipcode not found.');
+                }
+            } catch {
+                showStatus('error', 'Lookup failed.');
+            }
+        }
+
+        function fill(name, value) {
+            if (!value) return;
+            const el = document.querySelector(`[name="${name}"]`)
+                    || document.getElementById(name)
+                    || document.querySelector(`[id$="${name}"]`);
+            if (el) el.value = value;
+        }
+
+        function showStatus(type, msg = '') {
+            let box = document.getElementById('zipStatus');
+            if (!box) {
+                box = document.createElement('small');
+                box.id = 'zipStatus';
+                box.style.display = 'block';
+                box.style.marginTop = '4px';
+                document.getElementById('zipcodeInput')?.after(box);
+            }
+            const styles = {
+                loading: ['#0f3460', '🔍 Looking up...'],
+                success: ['#2e7d32', msg],
+                error:   ['#e94560', msg]
+            };
+            [box.style.color, box.textContent] = styles[type] ?? ['', ''];
+        }
+    })();
+</script>

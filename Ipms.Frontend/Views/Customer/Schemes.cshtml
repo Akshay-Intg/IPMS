@@ -1,0 +1,219 @@
+﻿@model List<Ipms.Frontend.Models.InsuranceSchemeViewModel>
+@{
+    var typeName = ViewBag.TypeName?.ToString() ?? "Insurance";
+    var typeId   = (int)(ViewBag.TypeId ?? 0);
+    ViewData["Title"] = typeName + " Plans";
+
+    string typeIcon    = "bi-shield-check";
+    string typeTagline = "Comprehensive insurance coverage for you.";
+    string[] typeBenefits = new[] { "Coverage available" };
+    string[] typeDocs     = new[] { "ID Proof" };
+
+    if (typeName == "Health") {
+        typeIcon     = "bi-heart-pulse";
+        typeTagline  = "Protect yourself and your family from rising medical costs.";
+        typeBenefits = new[] {
+            "Cashless treatment at 5000+ network hospitals",
+            "Pre & post hospitalization coverage",
+            "Day care procedures covered",
+            "Annual health check-up included",
+            "No claim bonus up to 50%",
+            "Tax benefit under Section 80D"
+        };
+        typeDocs = new[] { "Aadhaar Card", "PAN Card", "Recent Medical Reports", "Passport Size Photo" };
+    }
+    else if (typeName == "Life") {
+        typeIcon     = "bi-person-heart";
+        typeTagline  = "Secure your family's financial future with comprehensive life coverage.";
+        typeBenefits = new[] {
+            "Death benefit paid to nominee",
+            "Long-term wealth creation",
+            "Loan facility against policy",
+            "Flexible premium payment options",
+            "Maturity benefit on survival",
+            "Tax benefit under Section 80C"
+        };
+        typeDocs = new[] { "Aadhaar Card", "PAN Card", "Income Proof", "Medical Fitness Certificate" };
+    }
+    else if (typeName == "Term") {
+        typeIcon     = "bi-calendar-check";
+        typeTagline  = "Affordable high-coverage protection for a fixed period.";
+        typeBenefits = new[] {
+            "High coverage at low premiums",
+            "Fixed term with clear end date",
+            "Death benefit to nominee",
+            "Option to add riders",
+            "Return of premium option",
+            "Tax benefit under Section 80C"
+        };
+        typeDocs = new[] { "Aadhaar Card", "PAN Card", "Income Proof", "Medical Test Report" };
+    }
+    else if (typeName == "Group") {
+        typeIcon     = "bi-people";
+        typeTagline  = "Provide your employees with comprehensive group insurance coverage.";
+        typeBenefits = new[] {
+            "Coverage for entire organization",
+            "No medical examination required",
+            "Customizable coverage options",
+            "Employee benefit enhancement",
+            "Bulk premium discounts",
+            "Tax benefit for employer"
+        };
+        typeDocs = new[] { "Company Registration", "Employee List", "Organization PAN", "HR Authorization Letter" };
+    }
+}
+
+<link rel="stylesheet" href="~/css/schemes.css" />
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>schemes</title>
+    </head>
+    <body>
+   
+<div class="schemes-wrapper">
+
+    <!-- ── Page Header ── -->
+    <div class="schemes-page-header">
+        <div>
+            <h6>Insurance Plans</h6>
+            <h2><i class="bi bi-shield-check me-2"></i>@typeName Insurance</h2>
+            <div class="type-badge">
+                <i class="bi bi-bookmark-fill"></i> @Model.Count plan@(Model.Count != 1 ? "s" : "") available
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-3 mb-3">
+            <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+        </div>
+    }
+
+    <!-- ── Tagline ── -->
+    <div class="info-tagline">
+        <i class="bi @typeIcon"></i>
+        <p>@typeTagline</p>
+    </div>
+
+    <!-- ── Info Grid: Benefits + Docs + Steps ── -->
+    <div class="info-grid">
+
+        <div class="info-box">
+            <div class="info-box-header">
+                <i class="bi bi-check-circle-fill"></i> Key Benefits
+            </div>
+            <ul class="info-list">
+                @foreach (var benefit in typeBenefits)
+                {
+                    <li><i class="bi bi-check2"></i> @benefit</li>
+                }
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <div class="info-box-header">
+                <i class="bi bi-file-earmark-text-fill"></i> Documents Required
+            </div>
+            <ul class="info-list">
+                @foreach (var doc in typeDocs)
+                {
+                    <li><i class="bi bi-file-earmark-check"></i> @doc</li>
+                }
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <div class="info-box-header">
+                <i class="bi bi-diagram-3-fill"></i> How It Works
+            </div>
+            <div class="steps-list">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div>Choose a plan that suits you</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div>Fill in your personal details</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div>Submit medical &amp; nominee info</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div>Make payment &amp; get policy</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Available Plans Heading ── -->
+    <div class="plans-heading">
+        <h5><i class="bi bi-grid-3x3-gap-fill me-2"></i>Available Plans</h5>
+    </div>
+
+    <!-- ── Plan Cards ── -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="schemes-grid">
+            @foreach (var scheme in Model)
+            {
+                <div class="scheme-card">
+                    <div class="scheme-card-body">
+                        <div class="scheme-name">@scheme.SchemeName</div>
+                        <div class="scheme-desc">@scheme.Description</div>
+                        <div class="info-chips">
+                            <div class="info-row">
+                                <span class="info-row-label">
+                                    <i class="bi bi-person-badge"></i> Age Range
+                                </span>
+                                <span class="info-row-value">@scheme.MinAge – @scheme.MaxAge yrs</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-row-label">
+                                    <i class="bi bi-currency-rupee"></i> Coverage
+                                </span>
+                                <span class="info-row-value">
+                                    ₹@scheme.MinAmount.ToString("N0") – ₹@scheme.MaxAmount.ToString("N0")
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-row-label">
+                                    <i class="bi bi-graph-up-arrow"></i> Profit Ratio
+                                </span>
+                                <span class="info-row-value">@scheme.ProfitRatio%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scheme-card-footer">
+                            <a asp-controller="Customer" asp-action="InsuranceForm"
+                               asp-route-schemeId="@scheme.SchemeId"
+                               asp-route-type="@scheme.InsuranceTypeId"
+                               asp-route-planName="@scheme.SchemeName"
+                               class="btn-buy">
+                            <i class="bi bi-shield-plus"></i> Buy This Plan
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-shield-exclamation"></i>
+            <h5>No Plans Available</h5>
+            <p>There are no active plans for @typeName Insurance right now.</p>
+            <a asp-controller="Customer" asp-action="CPlans" class="btn-back"
+               style="display:inline-flex; margin-top:1rem; background:#0f3460; border-color:#0f3460;">
+                <i class="bi bi-arrow-left"></i> Back to All Plans
+            </a>
+        </div>
+    }
+
+</div>
+</body>
+</html>

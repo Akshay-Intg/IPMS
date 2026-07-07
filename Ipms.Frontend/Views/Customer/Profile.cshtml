@@ -1,0 +1,56 @@
+﻿@model Ipms.Frontend.Models.CustomerViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    var initials = (Model.firstName?.Length > 0 ? Model.firstName[0].ToString() : "") +
+                   (Model.lastName?.Length > 0 ? Model.lastName[0].ToString() : "");
+}
+<link rel="stylesheet" href="~/css/profile.css" />
+
+
+<div class="profile-wrapper">
+    <div class="profile-card">
+
+        <div class="profile-banner">
+            <h6>Insurance Portal</h6>
+            <h2>My Profile</h2>
+            <div class="avatar-wrap">
+                <div class="avatar">@initials</div>
+            </div>
+        </div>
+
+        <div class="profile-body">
+            <div class="profile-name">@Model.firstName @Model.lastName</div>
+            <div class="profile-id">CUSTOMER ID: #@Model.customerId</div>
+
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                Active Account
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@Model.email</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">@Model.phoneNo</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">@DateTime.Now.Year</div>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <a asp-controller="Customer" asp-action="Edit" asp-route-id="@Model.customerId" class="btn-edit">
+                    <i class="bi bi-pencil-square"></i> Edit Profile
+                </a>
+                <a asp-controller="Customer" asp-action="ChangePassword" class="btn-password">
+                    <i class="bi bi-lock"></i> Change Password
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>

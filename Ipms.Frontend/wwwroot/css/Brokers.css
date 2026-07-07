@@ -1,0 +1,367 @@
+﻿/* ── Wrapper ── */
+.broker-wrapper {
+    padding: 2rem 1.5rem;
+}
+
+/* ── Page Header ── */
+.broker-page-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+    .broker-page-header h6 {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.7rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 0.2rem;
+    }
+
+    .broker-page-header h2 {
+        color: #fff;
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(170,205,220,0.2);
+    border: 1px solid rgba(170,205,220,0.4);
+    color: #AACDDC;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 50px;
+    margin-top: 0.5rem;
+    width: fit-content;
+}
+
+/* ── Add Button ── */
+.btn-add {
+    background: #F3E3D0;
+    color: #2c3e50;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.2s;
+}
+
+    .btn-add:hover {
+        background: #e8cdb5;
+        color: #2c3e50;
+    }
+
+/* ── Stats Row ── */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-top: 4px solid #AACDDC;
+}
+
+    .stat-card i {
+        font-size: 1.8rem;
+        color: #0f3460;
+    }
+
+.stat-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a2e4a;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+/* ── Broker Card ── */
+.broker-card {
+    background: #fff;
+    border: 10px solid #AACDDC;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 2px 2px 12px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+}
+
+.broker-card-header {
+    background: #AACDDC;
+    border-color: black;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+    .broker-card-header h5 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #1a2e4a;
+    }
+
+/* ── Search Input ── */
+.search-input {
+    padding: 7px 14px;
+    border: 1px solid #ccd9e0;
+    border-color: black;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    width: 220px;
+}
+
+    .search-input:focus {
+        border-color: #0f3460;
+    }
+
+/* ── Table ── */
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+thead th {
+    background: #AACDDC;
+    padding: 11px 16px;
+    text-align: left;
+    color: #1a2e4a;
+    font-weight: 600;
+    border-bottom: 1px solid #ccc;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: middle;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background: #f9fbfd;
+}
+
+/* ── Broker Name Cell ── */
+.broker-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.broker-avatar {
+    width: 32px;
+    height: 32px;
+    background: #0f3460;
+    color: #AACDDC;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.policy-count {
+    background: #e8f4fd;
+    color: #0f3460;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.policy-num {
+    font-weight: 600;
+    color: #0f3460;
+    font-size: 12px;
+}
+
+/* ── Badges ── */
+.badge {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge-green {
+    background: #d4f5e4;
+    color: #1a7a45;
+}
+
+.badge-orange {
+    background: #fdecd4;
+    color: #b05a00;
+}
+
+.badge-red {
+    background: #fdd9d9;
+    color: #b00020;
+}
+
+/* ── Action Buttons ── */
+.action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: opacity 0.2s;
+    text-decoration: none;
+}
+
+    .btn-action:hover {
+        opacity: 0.8;
+    }
+
+.btn-view {
+    background: #e8f4fd;
+    color: #0f3460;
+}
+
+.btn-activate {
+    background: #d4f5e4;
+    color: #1a7a45;
+}
+
+.btn-deactivate {
+    background: #fdd9d9;
+    color: #b00020;
+}
+
+/* ── Quick Actions Grid ── */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px;
+}
+
+.quick-action-btn {
+    background: #F3E3D0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    text-decoration: none;
+    color: #2c3e50;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+    .quick-action-btn i {
+        font-size: 1.4rem;
+        color: #0f3460;
+    }
+
+    .quick-action-btn:hover {
+        background: #e8cdb5;
+        color: #2c3e50;
+    }
+
+/* ── Empty State ── */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #aaa;
+}
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+        color: #ddd;
+    }
+
+    .empty-state h5 {
+        color: #555;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+    .stats-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .broker-page-header {
+        flex-direction: column;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .search-input {
+        width: 150px;
+    }
+}

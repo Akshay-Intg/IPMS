@@ -1,0 +1,126 @@
+﻿#tableBody td:first-child {
+    white-space: nowrap !important;
+}
+
+.action-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 50px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.action-login {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+.action-pending {
+    background: #fff3cd; 
+    color: #856404; 
+    border: 1px solid #ffeeba;
+}
+
+.action-registered {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.action-created {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.action-approved {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.action-updated {
+    background: #fff8e1;
+    color: #f57f17;
+    border: 1px solid #ffe082;
+}
+
+.action-rejected {
+    background: #fef0f0;
+    color: #d93025;
+    border: 1px solid #f5c6c6;
+}
+
+.action-deleted {
+    background: #fef0f0;
+    color: #d93025;
+    border: 1px solid #f5c6c6;
+}
+
+.action-default {
+    background: #f3f4f6;
+    color: #555;
+    border: 1px solid #ddd;
+}
+
+.entity-pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 50px;
+    background: #eef2ff;
+    color: #0f3460;
+    border: 1px solid #d0daf5;
+    white-space: nowrap;
+}
+
+.filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    align-items: center;
+}
+
+.filter-select {
+    border: 1.5px solid #e0e6f0;
+    border-radius: 10px;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.82rem;
+    color: #1a1a2e;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
+
+    .filter-select:focus {
+        border-color: #0f3460;
+        box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+    }
+
+.stats-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.page-link {
+    border-radius: 8px !important;
+}

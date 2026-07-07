@@ -1,0 +1,120 @@
+﻿@model Ipms.Frontend.Models.InsuranceSchemeViewModel
+@{
+    ViewData["Title"] = "Edit Insurance Scheme";
+}
+
+<link rel="stylesheet" href="~/css/editscheme.css" />
+
+
+<div class="edit-wrapper">
+    <div class="edit-card">
+
+        <div class="edit-banner">
+            <h6>Admin Panel</h6>
+            <h2><i class="bi bi-pencil-square me-2"></i>Edit Insurance Scheme</h2>
+        </div>
+
+        <div class="edit-body">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger rounded-3 mb-3">
+                    <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+                </div>
+            }
+
+            <form asp-controller="Scheme" asp-action="EditScheme"
+                  asp-route-id="@Model.SchemeId" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                <div class="section-label">Scheme Information</div>
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-12">
+                        <label class="form-label">Scheme Name</label>
+                        <input type="text" class="form-control" maxlength="50" asp-for="SchemeName" />
+                        <span asp-validation-for="SchemeName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" asp-for="Description" rows="3" maxlength="150"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Insurance Type</label>
+                        <select class="form-select" asp-for="InsuranceTypeId">
+                            <option value="">Select Type</option>
+                            <option value="1">Health</option>
+                            <option value="2">Life</option>
+                            <option value="3">Term</option>
+                            <option value="4">Group</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Profit Ratio (%)</label>
+                        <input type="number" class="form-control" asp-for="ProfitRatio" step="0.01" />
+                        <span asp-validation-for="ProfitRatio" class="text-danger small"></span>
+                    </div>
+
+                </div>
+
+                <div class="section-label">Eligibility</div>
+                <div class="row g-3 mb-4">
+
+                    <div class="col-md-3">
+                        <label class="form-label">Min Age</label>
+                        <input type="number" class="form-control" asp-for="MinAge" />
+                        <span asp-validation-for="MinAge" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Max Age</label>
+                        <input type="number" class="form-control" asp-for="MaxAge" />
+                        <span asp-validation-for="MaxAge" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Min Amount (₹)</label>
+                        <input type="number" class="form-control" asp-for="MinAmount" step="0.01" />
+                        <span asp-validation-for="MinAmount" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Max Amount (₹)</label>
+                        <input type="number" class="form-control" asp-for="MaxAmount" step="0.01" />
+                        <span asp-validation-for="MaxAmount" class="text-danger small"></span>
+                    </div>
+
+                </div>
+
+                <div class="section-label">Status</div>
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" asp-for="IsActive" role="switch" />
+                        <label class="form-check-label ms-2">
+                            Active
+                            <small class="text-muted">(inactive schemes won't appear for customers)</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 pt-2">
+                    <button type="submit" class="btn-save">
+                        <i class="bi bi-check-circle"></i> Update Scheme
+                    </button>
+                    <a asp-controller="Scheme" asp-action="SchemeList" class="btn-cancel">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

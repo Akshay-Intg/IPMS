@@ -1,0 +1,98 @@
+﻿.edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.edit-grid .full {
+    grid-column: 1 / -1;
+}
+
+.section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #0f3460;
+    font-weight: 700;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #e8edf5;
+    margin: 1.5rem 0 1rem;
+}
+
+.form-label-uw {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+.form-control-uw,
+.form-select-uw {
+    border: 1.5px solid #e8edf5;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.88rem;
+    color: #1a1a2e;
+    background: #f8f9fb !important;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: 'Poppins', sans-serif;
+}
+
+    .form-control-uw:focus,
+    .form-select-uw:focus {
+        border-color: #0f3460;
+        box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+        background: #fff !important;
+    }
+
+    .form-control-uw.is-invalid,
+    .form-select-uw.is-invalid {
+        border-color: #e94560;
+    }
+
+.field-error {
+    color: #e94560;
+    font-size: 0.72rem;
+    margin-top: 3px;
+    display: block;
+}
+
+.admin-section {
+    background: #fffbea;
+    border: 1.5px solid #ffe082;
+    border-radius: 14px;
+    padding: 1.25rem;
+}
+
+    .admin-section .section-title {
+        color: #b8860b;
+        border-bottom-color: #ffe082;
+    }
+
+.form-switch .form-check-input {
+    width: 2.5em;
+    height: 1.3em;
+    cursor: pointer;
+}
+
+    .form-switch .form-check-input:checked {
+        background-color: #0f3460;
+        border-color: #0f3460;
+    }
+
+@@media (max-width: 576px) {
+    .edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+        .edit-grid .full {
+            grid-column: 1;
+        }
+}
+

@@ -1,0 +1,133 @@
+﻿.create-wrapper {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.create-card {
+    width: 100%;
+    max-width: 860px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    background: #fff;
+}
+
+.create-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 2rem 2rem 1.5rem;
+}
+
+    .create-banner h6 {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.75rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+    }
+
+    .create-banner h2 {
+        color: #fff;
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+.create-body {
+    padding: 2rem;
+}
+
+.section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #0f3460;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid #e8edf5;
+}
+
+.form-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.form-control, .form-select {
+    border: 1.5px solid #e8edf5;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    color: #1a1a2e;
+    background-color: #f8f9fb !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: #0f3460;
+        box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+        background-color: #fff !important;
+    }
+
+.form-switch .form-check-input {
+    width: 2.5em;
+    height: 1.3em;
+    cursor: pointer;
+}
+
+    .form-switch .form-check-input:checked {
+        background-color: #0f3460;
+        border-color: #0f3460;
+    }
+
+.btn-save {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .btn-save:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(15,52,96,0.4);
+    }
+
+.btn-cancel {
+    background: #fff;
+    color: #666;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: 0.65rem 2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .btn-cancel:hover {
+        background: #f5f5f5;
+        color: #333;
+        border-color: #bbb;
+    }
+
+.text-danger.small {
+    font-size: 0.75rem;
+}
+

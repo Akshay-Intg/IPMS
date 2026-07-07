@@ -1,0 +1,268 @@
+﻿@model Ipms.Frontend.Models.PolicyUnderwriterViewModel
+
+@{
+    ViewData["Title"] = "Review Policy";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" />
+<link rel="stylesheet" href="~/css/reviewpolicy.css" />
+
+
+
+<div class="profile-wrapper">
+    <div class="profile-card">
+
+        <div class="profile-banner">
+            <h6>Underwriter Review</h6>
+            <h2><i class="bi bi-clipboard2-pulse me-2"></i>@Model.PolicyNumber</h2>
+            <div class="avatar-wrap">
+                <div class="avatar">
+                    @(Model.InsuranceType?.Substring(0, 1) ?? "P")
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-body">
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger rounded-3 mb-3">
+                    <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <span class="@(Model.PolicyStatus == "Active" ? "badge-active" :
+                                                     Model.PolicyStatus == "Rejected" ? "badge-rejected" : "badge-pending")">
+                    @Model.PolicyStatus
+                </span>
+                <a asp-controller="Policy" asp-action="AllPolicies" class="btn-edit">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <div class="section-title">Policy Information</div>
+            <div class="policy-grid">
+                <div class="info-item">
+                    <div class="info-label">Policy Number</div>
+                    <div class="info-value">@Model.PolicyNumber</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Insurance Type</div>
+                    <div class="info-value">@(Model.InsuranceType ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Scheme</div>
+                    <div class="info-value">@(Model.SchemeName ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Sum Assured</div>
+                    <div class="info-value">₹@Model.SumAssured.ToString("N0")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Policy Term</div>
+                    <div class="info-value">@(Model.PolicyTerm.HasValue? Model.PolicyTerm + " Year(s)" : "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Start Date</div>
+                    <div class="info-value">@(Model.PolicyDate.HasValue? Model.PolicyDate.Value.ToString("dd MMM yyyy") : "-")</div>
+                </div>
+            </div>
+
+            <div class="section-title">Proposer Details</div>
+            <div class="policy-grid">
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">@(Model.FullName ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Age</div>
+                    <div class="info-value">@Model.Age years</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Gender</div>
+                    <div class="info-value">@(Model.Gender ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Date of Birth</div>
+                    <div class="info-value">@(Model.DOB.HasValue? Model.DOB.Value.ToString("dd MMM yyyy") : "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Marital Status</div>
+                    <div class="info-value">@(Model.MaritalStatus ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">PAN Card</div>
+                    <div class="info-value">@(Model.PANCard ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Address</div>
+                    <div class="info-value">
+                        @Model.HouseNo, @Model.Street, @Model.City - @Model.PinCode
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Risk Assessment</div>
+            <div class="risk-grid">
+                <div class="risk-card">
+                    <div class="risk-label">Age</div>
+                    <div class="risk-value">@Model.Age</div>
+                    <span class="risk-factor @(Model.AgeFactor <= 1.00m ? "factor-low" : Model.AgeFactor <= 1.15m ? "factor-medium" : "factor-high")">
+                        ×@Model.AgeFactor
+                    </span>
+                </div>
+                <div class="risk-card">
+                    <div class="risk-label">BMI</div>
+                    <div class="risk-value">@Model.BMI</div>
+                    <span class="risk-factor @(Model.BMIFactor <= 1.00m ? "factor-low" : Model.BMIFactor <= 1.15m ? "factor-medium" : "factor-high")">
+                        @Model.BMICategory
+                    </span>
+                </div>
+                <div class="risk-card">
+                    <div class="risk-label">Smoker</div>
+                    <div class="risk-value">@(Model.Smokes ? "Yes" : "No")</div>
+                    <span class="risk-factor @(Model.Smokes ? "factor-high" : "factor-low")">
+                        ×@Model.SmokerFactor
+                    </span>
+                </div>
+                <div class="risk-card">
+                    <div class="risk-label">Height / Weight</div>
+                    <div class="risk-value" style="font-size:1rem;">
+                        @Model.HeightFeet'@Model.HeightInches" / @Model.Weight kg
+                    </div>
+                    <span class="risk-factor @(Model.BMIFactor <= 1.00m ? "factor-low" : "factor-medium")">
+                        BMI ×@Model.BMIFactor
+                    </span>
+                </div>
+            </div>
+
+            <div class="section-title">Medical Information</div>
+            <div class="policy-grid">
+                <div class="info-item full">
+                    <div class="info-label">Medical History</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.MedicalHistory) ? "None reported" : Model.MedicalHistory)</div>
+                </div>
+            </div>
+
+            <div class="section-title">Premium Calculation Breakdown</div>
+            <div class="premium-box">
+                <h5>Suggested Premium Calculation</h5>
+                <div class="premium-row">
+                    <span class="label">Base Premium (SumAssured × Rate / Term)</span>
+                    <span class="value">₹@Model.BasePremium.ToString("N2")</span>
+                </div>
+                <div class="premium-row">
+                    <span class="label">Age Factor (×@Model.AgeFactor)</span>
+                    <span class="value">₹@((Model.BasePremium * Model.AgeFactor).ToString("N2"))</span>
+                </div>
+                <div class="premium-row">
+                    <span class="label">BMI Factor (×@Model.BMIFactor — @Model.BMICategory)</span>
+                    <span class="value">₹@((Model.BasePremium * Model.AgeFactor * Model.BMIFactor).ToString("N2"))</span>
+                </div>
+                <div class="premium-row">
+                    <span class="label">Smoker Factor (×@Model.SmokerFactor)</span>
+                    <span class="value">₹@((Model.BasePremium * Model.AgeFactor * Model.BMIFactor * Model.SmokerFactor).ToString("N2"))</span>
+                </div>
+                <div class="premium-row total">
+                    <span class="label">Suggested Annual Premium</span>
+                    <span class="value">₹@Model.SuggestedPremium.ToString("N2")</span>
+                </div>
+            </div>
+
+            <div class="section-title">Nominee Details</div>
+            <div class="policy-grid">
+                <div class="info-item">
+                    <div class="info-label">Nominee Name</div>
+                    <div class="info-value">@(Model.NomineeName ?? "-")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Relationship</div>
+                    <div class="info-value">@(Model.NomineeRelationship ?? "-")</div>
+                </div>
+            </div>
+
+            @if (Model.PolicyStatus == "Pending")
+            {
+                <div class="section-title">Underwriter Decision</div>
+                <div class="review-form">
+                    <form asp-action="Review" asp-controller="Policy"
+                          asp-route-id="@Model.PolicyId" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label-uw">
+                                    Final Premium Amount (₹)
+                                    <small style="color:#0f3460; font-weight:700;">
+                                        — Suggested: ₹@Model.SuggestedPremium.ToString("N2")
+                                    </small>
+                                </label>
+                                <input type="number" class="form-control-uw" name="PremiumAmount"
+                                       value="@Model.SuggestedPremium" step="0.01" min="1" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-uw">Remarks</label>
+                                <input type="text" class="form-control-uw" name="Remarks"
+                                       placeholder="Optional underwriter notes..."
+                                       value="@Model.UnderwriterRemarks" />
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="Status" id="statusInput" value="" />
+
+                        <div class="d-flex gap-3 flex-wrap">
+                            <button type="button" class="btn-approve"
+                                    onclick="submitReview('Active')">
+                                <i class="bi bi-check-circle-fill"></i> Approve Policy
+                            </button>
+                            <button type="button" class="btn-reject"
+                                    onclick="submitReview('Rejected')">
+                                <i class="bi bi-x-circle-fill"></i> Reject Policy
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="section-title">Underwriter Decision</div>
+                <div class="policy-grid">
+                    <div class="info-item">
+                        <div class="info-label">Final Premium</div>
+                        <div class="info-value">₹@Model.PremiumAmount.ToString("N2")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Decision</div>
+                        <div class="info-value">
+                            <span class="@(Model.PolicyStatus == "Active" ? "badge-active" : "badge-rejected")">
+                                @Model.PolicyStatus
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Remarks</div>
+                        <div class="info-value">@(Model.UnderwriterRemarks ?? "-")</div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function submitReview(status) {
+            const confirmMsg = status === 'Active'
+                ? 'Are you sure you want to APPROVE this policy?'
+                : 'Are you sure you want to REJECT this policy?';
+
+            if (!confirm(confirmMsg)) return;
+
+            document.getElementById('statusInput').value = status;
+            document.querySelector('form').submit();
+        }
+    </script>
+}

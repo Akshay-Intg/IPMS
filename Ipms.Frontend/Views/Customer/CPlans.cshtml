@@ -1,0 +1,43 @@
+﻿@model List<Ipms.Frontend.Models.InsuranceTypeViewModel>
+<link rel="stylesheet" href="~/css/cplan.css" />
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Our Insurance Plans</h1>
+        <p>Explore our range of insurance solutions designed to protect you.</p>
+    </div>
+
+    @{
+        var images = new Dictionary<string, string>
+        {
+            ["Health"] = "https://images.unsplash.com/photo-1584515933487-779824d29309",
+            ["Life"] = "https://images.unsplash.com/photo-1511988617509-a57c8a288659",
+            ["Term"] = "https://images.unsplash.com/photo-1450101499163-c8848c66ca85",
+            ["Group"] = "https://images.unsplash.com/photo-1521737604893-d14cc237f11d"
+        };
+    }
+
+    <div class="row g-4">
+        @foreach (var type in Model)
+        {
+            var img = images.ContainsKey(type.TypeName ?? "")
+            ? images[type.TypeName!]
+            : "https://images.unsplash.com/photo-1450101499163-c8848c66ca85";
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <!-- ← card wrapper -->
+                    <img src="@img" class="card-img-top"
+                         alt="@type.TypeName Insurance" />
+                    <div class="card-body d-flex flex-column text-center">
+                        <h5 class="fw-bold">@type.TypeName Insurance</h5>
+                        <p class="text-muted flex-grow-1">@type.Description</p>
+                        <a asp-controller="Customer" asp-action="Schemes"
+                           asp-route-typeId="@type.InsuranceTypeId"
+                           class="btn mt-auto plan-btn">View Plans</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
